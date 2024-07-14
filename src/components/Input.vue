@@ -3,7 +3,7 @@
     <!-- <img v-if="showIcon" class="input-logo" src="../assets/logo.png" alt=""> -->
     <img v-if="icon" class="input-logo" :src="require(`../assets/${icon}`)" alt="">
     <input class="input-element" :type="inputType" v-model="inputValue" :placeholder="placeholder"
-      @focus="inputIsFocus = true" @blur="inputIsFocus = false" @input="emit('update:value', inputValue)" ref="inputEl">
+      @focus="inputIsFocus = true" @blur="inputIsFocus = false" @input="onInput" @keydown="inputKeyDown" ref="inputEl">
     <Transition name="appear">
       <img v-if="inputValue && !disableClear" class="input-clear" @click="clearClicked"
         src="../assets/input/clear.png" alt="">
@@ -17,7 +17,7 @@
 
 <script setup>
 /* eslint-disable */
-import { ref, defineProps, defineEmits } from 'vue';
+import { ref, defineProps, defineEmits, defineExpose } from 'vue';
 
 const props = defineProps({
   showIcon: { type: Boolean, default: false },
@@ -27,9 +27,9 @@ const props = defineProps({
   inputType: { type: String, default: 'text' },
   placeholder: { type: String, default: 'Custom Input' }
 });
-
 const emit = defineEmits([
-  'update:value'
+  'update:value',
+  'enter'
 ]);
 
 //#region Data Section
@@ -41,11 +41,28 @@ const inputEl = ref(null);
 //#region Methods
 const clearClicked = () => {
   inputValue.value = '';
-  inputEl.value.focus();
+  setFocus();
 
   emit('update:value', inputValue.value);
 }
+const onInput = () => {
+  emit('update:value', inputValue.value);
+}
+const inputKeyDown = (e) => {
+  if (e.key == 'Enter') {
+    emit('enter');
+  }
+}
+const setFocus = () => {
+  inputEl.value.focus();
+}
 //#endregion Methods
+
+//#region Expose
+defineExpose({
+  setFocus
+});
+//#endregion Expose
 </script>
 
 <style scoped>
