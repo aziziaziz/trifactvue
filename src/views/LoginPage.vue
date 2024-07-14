@@ -1,8 +1,11 @@
 <template>
   <div class="login-main">
     <div class="left-container">
-      Left
+      <img class="left-side-logo" src="../assets/logowithtext.png" alt="">
+      <div class="company-caption">TIME <span>⚫️</span> COST <span>⚫️</span> QUALITY</div>
+      <img class="company-logo" src="../assets/logo.png" alt="">
     </div>
+
     <div class="right-container">
       <div class="login-container">
         <div>WELCOME</div>
@@ -68,6 +71,30 @@ const performLogin = () => {
 }
 .left-container {
   width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* padding-bottom: 10%; */
+}
+.left-side-logo {
+  width: 80%;
+}
+.company-caption {
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: bold;
+  font-size: 1.25em;
+  display: flex;
+  align-items: center;
+  column-gap: 0.5em;
+  margin-top: 1em;
+}
+.company-caption > span {
+  font-size: 0.5em;
+}
+.company-logo {
+  width: 20%;
+  margin-top: 3em;
 }
 .right-container {
   width: 60%;
