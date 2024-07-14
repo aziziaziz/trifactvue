@@ -1,8 +1,7 @@
 <template>
-  <div class="input-container">
-    <!-- <img v-if="showIcon" class="input-logo" src="../assets/logo.png" alt=""> -->
+  <div class="input-container" :style="{ opacity: disabled ? 0.75 : 1 }">
     <img v-if="icon" class="input-logo" :src="require(`../assets/${icon}`)" alt="">
-    <input class="input-element" :type="inputType" v-model="inputValue" :placeholder="placeholder"
+    <input class="input-element" :type="inputType" v-model="inputValue" :placeholder="placeholder" :tabindex="disabled ? -1 : 0"
       @focus="inputIsFocus = true" @blur="inputIsFocus = false" @input="onInput" @keydown="inputKeyDown" ref="inputEl">
     <Transition name="appear">
       <img v-if="inputValue && !disableClear" class="input-clear" @click="clearClicked"
@@ -12,6 +11,8 @@
       <div class="line"></div>
       <div class="line line-focus" :style="{ maxWidth: inputIsFocus ? '100%' : '0' }"></div>
     </div>
+
+    <div v-if="disabled" class="disabled-overlay"></div>
   </div>
 </template>
 
@@ -25,7 +26,8 @@ const props = defineProps({
   icon: String,
   disableClear: { type: Boolean, default: false },
   inputType: { type: String, default: 'text' },
-  placeholder: { type: String, default: 'Custom Input' }
+  placeholder: { type: String, default: 'Custom Input' },
+  disabled: { type: Boolean, default: false }
 });
 const emit = defineEmits([
   'update:value',
@@ -108,7 +110,7 @@ defineExpose({
   height: 1px;
   background-color: gray;
   width: 100%;
-  margin-top: 5px;
+  /* margin-top: 5px; */
   position: absolute;
 }
 .line-focus {
@@ -116,6 +118,15 @@ defineExpose({
   width: 100%;
   background-color: rgb(68,188,98);
   transition: 0.3s;
+}
+.disabled-overlay {
+  background-color: rgba(128,128,128,0.2);
+  z-index: 9;
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
 }
 
 .appear-enter-active, .appear-leave-active {
