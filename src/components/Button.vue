@@ -1,5 +1,5 @@
 <template>
-  <button class="button-container">
+  <button :class="['button-container', `${theme}-theme`]">
     <slot>
       Testing
     </slot>
@@ -7,7 +7,13 @@
 </template>
 
 <script setup>
-import {} from 'vue';
+/* eslint-disable */
+import { defineProps } from 'vue';
+
+const props = defineProps({
+  // The theme of the button. Possible values: default (green), danger (red), submit (blue), warning (yellow)
+  theme: { type: String, default: 'default' }
+});
 </script>
 
 <style scoped>
@@ -25,5 +31,25 @@ import {} from 'vue';
 }
 .button-container:active {
   transform: scale(0.9);
+}
+.danger-theme {
+  background-color: rgb(208, 123, 123);
+  color: white;
+}
+.danger-theme:focus {
+  outline-color: red;
+}
+.submit-theme {
+  background-color: cornflowerblue;
+  color: white;
+}
+.submit-theme:focus {
+  outline-color: blue;
+}
+.warning-theme {
+  background-color: yellow;
+}
+.warning-theme:focus {
+  outline-color: goldenrod
 }
 </style>
