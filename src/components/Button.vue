@@ -9,6 +9,7 @@
       <div class="loading-dot"></div>
       <div class="loading-dot"></div>
     </div>
+    <div v-if="disabled" class="loading-container disabled-container"></div>
   </button>
 </template>
 
@@ -85,6 +86,9 @@ const emit = defineEmits([
   align-items: center;
   justify-content: center;
   user-select: none;
+}
+.disabled-container {
+  backdrop-filter: none;
 }
 .loading-dot {
   border-radius: 100%;
