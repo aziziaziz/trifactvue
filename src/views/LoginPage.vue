@@ -106,13 +106,12 @@ const performLogin = () => {
 }
 .login-container {
   width: 50%;
-  height: 50%;
+  padding: 1.5em 10px;
   border-radius: 10px;
   box-shadow: 0 0 10px 2px gray;
   background-color: white;
   display: flex;
   flex-direction: column;
-  padding: 10px;
   align-items: center;
   justify-content: center;
 }
@@ -126,5 +125,39 @@ const performLogin = () => {
   text-align: center;
   pointer-events: none;
   left: 0;
+}
+
+@media screen and (max-width: 900px) {
+  .login-main {
+    flex-direction: column;
+    height: 100vh;
+    background: linear-gradient(to bottom, transparent, rgb(68,188,98));
+  }
+  .left-container, .right-container {
+    width: 100%;
+  }
+  .left-container {
+    height: 30%;
+  }
+  .right-container {
+    height: 70%;
+    align-items: flex-start;
+    background: transparent;
+  }
+  .left-side-logo {
+    max-width: 300px;
+  }
+  .company-caption {
+    font-size: 1em;
+  }
+  .company-logo {
+    max-width: 50px;
+    margin-top: 1.2em;
+  }
+  .login-container {
+    max-width: 400px;
+    width: 90%;
+    margin-top: 3em;
+  }
 }
 </style>
