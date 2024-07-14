@@ -43,7 +43,7 @@ const inputEl = ref(null);
 //#region Methods
 const clearClicked = () => {
   inputValue.value = '';
-  setFocus();
+  setFocus(true);
 
   emit('update:value', inputValue.value);
 }
@@ -55,8 +55,12 @@ const inputKeyDown = (e) => {
     emit('enter');
   }
 }
-const setFocus = () => {
-  inputEl.value.focus();
+const setFocus = (focus) => {
+  if (focus === true) {
+    inputEl.value.focus();
+  } else {
+    inputEl.value.blur();
+  }
 }
 //#endregion Methods
 
