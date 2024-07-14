@@ -17,7 +17,7 @@
 
 <script setup>
 /* eslint-disable */
-import { ref, defineProps, defineEmits, defineExpose } from 'vue';
+import { ref, defineProps, defineEmits, defineExpose, onMounted } from 'vue';
 
 const props = defineProps({
   showIcon: { type: Boolean, default: false },
@@ -57,6 +57,14 @@ const setFocus = () => {
   inputEl.value.focus();
 }
 //#endregion Methods
+
+//#region Lifecycle
+onMounted(() => {
+  if (props.value) {
+    inputValue.value = props.value;
+  }
+});
+//#endregion Lifecycle
 
 //#region Expose
 defineExpose({
