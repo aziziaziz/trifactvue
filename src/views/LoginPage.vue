@@ -13,7 +13,7 @@
           ref="usernameInput" @enter="performLogin" :disabled="loggingIn" />
         <Input icon="login/lock.png" disableClear inputType="password" v-model:value="password" placeholder="Password"
           ref="passwordInput" @enter="performLogin" :disabled="loggingIn" />
-        <Button @click="performLogin" :loading="loggingIn"></Button>
+        <Button @click="performLogin" :loading="loggingIn">Login</Button>
         
         <a>Forgot Password?</a>
       </div>
