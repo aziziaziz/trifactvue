@@ -3,71 +3,71 @@
     <Button theme="submit" class="add-space-button" @click="addSpaceClicked">Add Space</Button>
     <Input placeholder="Search Space" />
     <div class="space-container">
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">This is a very long text testing for elipsis. This is only when the text overflow, so that it would be hidden. This is not done yet guys. If not enough, you can shrink down a bit your browser to see the effect. This section also clickable to edit or view.</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">This is a bit shorter text</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Somewhat longer than previous, but still shorter than the first</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Short</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Just a random text, I don't know what to write anymore</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Please help me, I'm running out of ideas</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">I'm doing this at 1:30AM :'(</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Hope all this is worth it</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">I'm sleepy</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Texted Shern, but no reply</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Been doing since 11PM just now</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Today is 20th July</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Oh sheet, actually it is already 21st</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Hahaha</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Btw, guys, gotten a new job</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">And already resigned from CIMB.</div>
       </div>
-      <div class="space-details">
+      <div class="space-details" @click="spaceDetailsClicked">
         <div class="space-title">Name</div>
         <div class="space-description-container">Bye bye</div>
       </div>
@@ -81,6 +81,9 @@ import {} from 'vue';
 //#region Methods
 const addSpaceClicked = () => {
   alert('Walao, where got all done, slowly laaaaaa.');
+}
+const spaceDetailsClicked = () => {
+  alert('Later in the future you can click to view or edit details, now not yet.');
 }
 //#endregion Methods
 </script>
