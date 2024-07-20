@@ -1,6 +1,6 @@
 <template>
   <div class="space-main">
-    <Button theme="submit" class="add-space-button">Add Space</Button>
+    <Button theme="submit" class="add-space-button" @click="addSpaceClicked">Add Space</Button>
     <Input placeholder="Search Space" />
     <div class="space-container">
       <div class="space-details">
@@ -77,6 +77,12 @@
 
 <script setup>
 import {} from 'vue';
+
+//#region Methods
+const addSpaceClicked = () => {
+  alert('Walao, where got all done, slowly laaaaaa.');
+}
+//#endregion Methods
 </script>
 
 <style scoped>
