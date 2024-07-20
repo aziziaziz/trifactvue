@@ -28,38 +28,7 @@
       </div>
 
       <div class="home-body">
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
-        <Dropdown />
+        <router-view />
       </div>
     </div>
   </div>
