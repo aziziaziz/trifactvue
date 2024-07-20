@@ -4,6 +4,8 @@
     <div class="dropdown-container" tabindex="0" @keydown="dropdownKeydown" @click="dropdownClicked" @blur="dropdownFocusOut" ref="dropdownContainerEl">
       <div v-if="selectedObject">{{ selectedObject.value }}</div>
       <div v-else class="dropdown-placeholder">Please Select</div>
+      
+      <img class="dropdown-icon" src="../assets/dropdown/dropdown.png" alt="">
     </div>
 
     <div v-if="showDropdown" class="dropdown-select-container" ref="dropdownSelectEl">
@@ -17,7 +19,7 @@
 import { ref, defineProps, nextTick, watch } from 'vue'
 
 const props = defineProps({
-  items: { type: Array, default: [
+  items: { type: Array, default: () => [
     { value: 'Testing1' },
     { value: 'Testing2' },
     { value: 'Testing3' },
@@ -62,6 +64,7 @@ const itemClicked = (item) => {
 }
 const dropdownKeydown = async (e) => {
   if (e.key == ' ') {
+    e.preventDefault();
     showDropdown.value = !showDropdown.value;
     
     await nextTick();
@@ -71,6 +74,7 @@ const dropdownKeydown = async (e) => {
   } else if (e.key == 'Enter') {
     showDropdown.value = false;
   } else if (e.key == 'ArrowUp' || e.key == 'ArrowDown') {
+    e.preventDefault();
     let currentObjectIndex = -1;
     if (selectedObject.value) {
       currentObjectIndex = props.items.findIndex(i => i.value == selectedObject.value.value);
@@ -115,17 +119,17 @@ const highlightDropdownItem = (ind) => {
     let currentElement = dropdownItemEl.value[ind];
     currentElement.classList.add('dropdown-selected');
     currentElement.scrollIntoView({
-      block: 'center'
+      block: 'nearest'
     });
   }
 }
 //#endregion Methods
 
 //#region Watchers
-watch(showDropdown, async (newVal, oldVal) => {
+watch(showDropdown, async (newVal) => {
   if (newVal) {
     await nextTick();
-    if (dropdownPositionSet.value == 'unset') {
+    // if (dropdownPositionSet.value == 'unset') {
       let pageHeight = window.innerHeight;
       let dropdownSelectBottom = dropdownSelectEl.value.getBoundingClientRect().bottom;
 
@@ -133,9 +137,9 @@ watch(showDropdown, async (newVal, oldVal) => {
         dropdownSelectEl.value.classList.add('dropdown-select-container-top')
         dropdownPositionSet.value = 'top';
       }
-    } else if (dropdownPositionSet.value == 'top') {
-      dropdownSelectEl.value.classList.add('dropdown-select-container-top')
-    }
+    // } else if (dropdownPositionSet.value == 'top') {
+    //   dropdownSelectEl.value.classList.add('dropdown-select-container-top')
+    // }
     
     dropdownSelectEl.value.focus();
   }
@@ -162,6 +166,7 @@ watch(showDropdown, async (newVal, oldVal) => {
   width: 100%;
   min-height: 30px;
   padding: 5px 10px;
+  display: flex;
 }
 .dropdown-container:focus {
   border: 2px solid gray;
@@ -191,5 +196,11 @@ watch(showDropdown, async (newVal, oldVal) => {
 }
 .dropdown-selected, .dropdown-item:hover {
   background-color: lightgray;
+}
+.dropdown-icon {
+  height: 50%;
+  max-height: 20px;
+  position: absolute;
+  right: 10px;
 }
 </style>

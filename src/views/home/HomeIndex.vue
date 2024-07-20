@@ -4,30 +4,7 @@
       <img :class="['menu-big-logo', { 'menu-big-logo-hide': !showMenu }]" src="https://img.icons8.com/?size=100&id=10403&format=png&color=000000" alt="">
       <div v-if="showMenu" class="menu-comp-name">Tri-Factor</div>
 
-      <div :class="['menu-item', { 'menu-item-hide': !showMenu }]">
-        <div>LOGO</div>
-        <div>Item 1</div>
-      </div>
-      <div :class="['menu-item', { 'menu-item-hide': !showMenu }]">
-        <div>LOGO</div>
-        <div>Item 2</div>
-      </div>
-      <div :class="['menu-item', { 'menu-item-hide': !showMenu }]">
-        <div>LOGO</div>
-        <div>Item Name Long For Testing</div>
-      </div>
-      <div :class="['menu-item', { 'menu-item-hide': !showMenu }]">
-        <div>LOGO</div>
-        <div>Item 4</div>
-      </div>
-      <div :class="['menu-item', { 'menu-item-hide': !showMenu }]">
-        <div>LOGO</div>
-        <div>Item 5</div>
-      </div>
-      <div :class="['menu-item', { 'menu-item-hide': !showMenu }]">
-        <div>LOGO</div>
-        <div>Item 6</div>
-      </div>
+      <CollapsibleMenu :menuItems="menu" />
     </div>
 
     <div class="home-content">
@@ -40,27 +17,100 @@
         </div>
         <div class="horizontal-spacer"></div>
         <div>Username</div>
-        <div>LOGO</div>
+        <div class="top-right-user-section" @click="showUserSection = !showUserSection">
+          <img class="user-logo" src="../../assets/home/user.png" alt="">
+          <transition name="user-section-trans">
+            <div v-if="showUserSection" class="user-section-open">
+              <Button theme="danger" @click="logoutClicked">Log Out</Button>
+            </div>
+          </transition>
+        </div>
       </div>
-      <div class="home-body">
 
+      <div class="home-body">
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
+        <Dropdown />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onBeforeMount } from 'vue'
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 //#region Data
 const showMenu = ref(true);
+const showUserSection = ref(false);
+const menu = ref([
+  {
+    menu: 'Phase 1',
+    opened: true,
+    children: [
+      { menu: 'Phase 1-1', icon: 'ICO' },
+      { menu: 'Phase 1-2', icon: 'ICO' },
+      { menu: 'Phase 1-3', icon: 'ICO' },
+      { menu: 'Phase 1-4', icon: 'ICO' },
+      { menu: 'Phase 1-5', icon: 'ICO' }
+    ]
+  }
+])
 //#endregion Data
 
 //#region Methods
 const showHideMenu = () => {
   showMenu.value = !showMenu.value;
 }
+const logoutClicked = () => {
+  // To clear all the user details upon logout from the local storage
+  localStorage.removeItem('user');
+  localStorage.removeItem('loginTime');
+
+  router.push('/');
+}
 //#endregion Methods
+
+//#region Lifecycle
+onBeforeMount(() => {
+  let currentUser = localStorage.getItem('user');
+  if (!currentUser) { // This is when the user is null, which means that no user has login
+    // Push to login page to make sure that user needs to be logged in to view the home page
+    router.push('/');
+  }
+})
+//#endregion Lifecycle
 </script>
 
 <style scoped>
@@ -80,6 +130,25 @@ const showHideMenu = () => {
   column-gap: 10px;
   white-space: nowrap;
   box-shadow: 0 0 5px 2px gray;
+}
+.top-right-user-section {
+  position: relative;
+  height: 35px;
+  width: 35px;
+  cursor: pointer;
+}
+.user-logo {
+  height: 100%;
+}
+.user-section-open {
+  background-color: white;
+  box-shadow: 0 0 5px 2px gray;
+  padding: 5px;
+  border-radius: 10px;
+  position: absolute;
+  min-width: 200px;
+  top: 100%;
+  right: 0;
 }
 .home-content {
   display: flex;
@@ -153,13 +222,20 @@ const showHideMenu = () => {
 .home-body {
   width: 100%;
   height: 100%;
+  padding: 10px;
+  overflow: auto;
 }
 
-.menu-burger-enter-active, .menu-burger-leave-active {
+.menu-burger-enter-active, .menu-burger-leave-active,
+.user-section-trans-enter-active, .user-section-trans-leave-active {
   transition: 0.3s;
 }
 .menu-burger-enter-from, .menu-burger-leave-to {
   opacity: 0;
   transform: rotate(90deg);
+}
+.user-section-trans-enter-from, .user-section-trans-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
 }
 </style>

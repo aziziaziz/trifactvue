@@ -24,7 +24,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onBeforeMount } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 //#region Data
 const username = ref('');
@@ -56,9 +59,26 @@ const performLogin = () => {
 
   setTimeout(() => {
     loggingIn.value = false;
-  }, 5000);
+    if (username.value == 'admin') {
+      localStorage.setItem('user', username.value);
+      localStorage.setItem('loginTime', new Date());
+      router.push('/Home');
+      // Simulating correct username and password
+    } else {
+      // Needs to handle for wrong username or password
+    }
+  }, 3000);
 }
 //#endregion Methods
+
+//#region Lifecycle
+onBeforeMount(() => {
+  let currentUser = localStorage.getItem('user');
+  if (currentUser) {
+    router.push('/Home');
+  }
+})
+//#endregion Lifecycle
 </script>
 
 <style scoped>

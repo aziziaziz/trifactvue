@@ -9,4 +9,10 @@
 body {
   margin: 0;
 }
+.horizontal-spacer {
+  width: 100%;
+}
+.vertical-spacer {
+  height: 100%;
+}
 </style>
