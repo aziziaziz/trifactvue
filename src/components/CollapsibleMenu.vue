@@ -1,30 +1,15 @@
 <template>
   <div v-for="(menu, menuInd) in menuItems" :key="menuInd" class="collapse-menu-main">
     <div class="menu-item" @click="showHideChildren(menuInd)">
-      <!-- <img :style="{ transform: `scale(${showChildren ? '-1' : '1'})` }" src="https://img.icons8.com/?size=100&id=2760&format=png&color=000000" alt=""> -->
-      <img :style="{ transform: `scale(${showChildren[menuInd] ? '-1' : '1'})` }" src="https://img.icons8.com/?size=100&id=2760&format=png&color=000000" alt="">
-      <div>Title {{ showChildren[menuInd] }} {{ childrenStartHeight[menuInd] }}</div>
+      <img :style="{ transform: `scale(${showChildren[menuInd] ? '-1' : '1'})` }" src="../assets/collapsible/dropdown.png" alt="">
+      <div>{{ menu.menu }}</div>
     </div>
     <div class="menu-children" ref="menuChildren">
-      <div v-for="(submenu, submenuInd) in menu.children" :key="submenuInd" class="menu-item">
+      <div v-for="(submenu, submenuInd) in menu.children" :key="submenuInd" class="menu-item menu-child">
         <div>{{ submenu.icon }}</div>
         <div>{{ submenu.menu }}</div>
       </div>
     </div>
-    <!--
-      <div class="menu-item">
-        <div>logo</div>
-        <div>Title2</div>
-      </div>
-      <div class="menu-item">
-        <div>logo</div>
-        <div>Title3</div>
-      </div>
-      <div class="menu-item">
-        <div>logo</div>
-        <div>Title4</div>
-      </div>
-    -->
   </div>
 </template>
 
@@ -135,10 +120,6 @@ onMounted(() => {
     m.style.maxHeight = showChildren.value[mInd] ? `${childrenStartHeight.value[mInd]}px` : 0;
     m.style.transition = '0.3s';
   });
-  // childrenStartHeight.value = menuChildren.value.getBoundingClientRect().height;
-  // showChildren.value = false;
-  // menuChildren.value.style.maxHeight = 0;
-  // menuChildren.value.style.transition = '0.3s linear';
 });
 //#endregion Lifecycle
 </script>
@@ -155,6 +136,10 @@ onMounted(() => {
   padding: 5px;
   column-gap: 5px;
   cursor: pointer;
+  user-select: none;
+}
+.menu-child {
+  margin-left: 20px;
 }
 .menu-item:hover {
   background-color: gray;
