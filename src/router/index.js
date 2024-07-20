@@ -16,6 +16,11 @@ const routes = [
         path: '',
         name: 'Home',
         component: () => import('../views/home/Home.vue')
+      },
+      {
+        path: 'SpaceReq',
+        name: 'Space Requirements [Phase 1]',
+        component: () => import('../views/phase1/SpaceRequirements.vue')
       }
     ]
   }
