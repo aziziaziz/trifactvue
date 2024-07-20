@@ -5,7 +5,7 @@
       <div>{{ menu.menu }}</div>
     </div>
     <div class="menu-children" ref="menuChildren">
-      <div v-for="(submenu, submenuInd) in menu.children" :key="submenuInd" class="menu-item menu-child">
+      <div v-for="(submenu, submenuInd) in menu.children" :key="submenuInd" class="menu-item menu-child" @click="menuClicked(submenu)">
         <div>{{ submenu.icon }}</div>
         <div>{{ submenu.menu }}</div>
       </div>
@@ -14,7 +14,10 @@
 </template>
 
 <script setup>
-import { defineProps, ref, onMounted } from 'vue'
+import { defineProps, ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const props = defineProps({
   menuItems: { type: Array, default: () => [
@@ -105,6 +108,13 @@ const showHideChildren = (ind) => {
     menuChildren.value[ind].style.maxHeight = `${childrenStartHeight.value[ind]}px`;
   } else {
     menuChildren.value[ind].style.maxHeight = 0;
+  }
+}
+const menuClicked = (menu) => {
+  if (menu.path) {
+    router.push(`/Home/${menu.path}`);
+  } else {
+    alert('Oiiii! Think all pages done meh??!');
   }
 }
 //#endregion Methods

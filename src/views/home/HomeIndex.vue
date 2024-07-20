@@ -1,7 +1,8 @@
 <template>
   <div class="home-main">
     <div :class="['home-menu', { 'home-menu-hide': !showMenu }]">
-      <img :class="['menu-big-logo', { 'menu-big-logo-hide': !showMenu }]" src="https://img.icons8.com/?size=100&id=10403&format=png&color=000000" alt="">
+      <img :class="['menu-big-logo', { 'menu-big-logo-hide': !showMenu }]" src="https://img.icons8.com/?size=100&id=10403&format=png&color=000000" alt=""
+        @click="companyLogoClicked">
       <div v-if="showMenu" class="menu-comp-name">Tri-Factor</div>
 
       <CollapsibleMenu :menuItems="menu" />
@@ -48,11 +49,11 @@ const menu = ref([
     menu: 'Phase 1',
     opened: true,
     children: [
-      { menu: 'Phase 1-1', icon: 'ICO' },
-      { menu: 'Phase 1-2', icon: 'ICO' },
-      { menu: 'Phase 1-3', icon: 'ICO' },
-      { menu: 'Phase 1-4', icon: 'ICO' },
-      { menu: 'Phase 1-5', icon: 'ICO' }
+      { menu: 'Space Requirements', icon: 'ICO', path: 'SpaceReq' },
+      { menu: 'Office Customization', icon: 'ICO' },
+      { menu: 'Retail Customization', icon: 'ICO' },
+      { menu: 'Budget', icon: 'ICO' },
+      { menu: 'Cost Breakdown', icon: 'ICO' }
     ]
   }
 ])
@@ -68,6 +69,9 @@ const logoutClicked = () => {
   localStorage.removeItem('loginTime');
 
   router.push('/');
+}
+const companyLogoClicked = () => {
+  router.push('/Home');
 }
 //#endregion Methods
 
@@ -148,6 +152,7 @@ onBeforeMount(() => {
   width: 100px;
   transition: 0.3s;
   margin-top: 1em;
+  cursor: pointer;
 }
 .menu-big-logo-hide {
   height: 40px;
