@@ -119,7 +119,7 @@ onMounted(() => {
 <style scoped>
 .home-main {
   display: flex;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
 .home-top-bar {
@@ -195,6 +195,7 @@ onMounted(() => {
 .menu-small-logo {
   height: 90%;
   margin-left: 5px;
+  display: none;
 }
 .menu-comp-name {
   margin-bottom: 1.5em;
@@ -273,6 +274,9 @@ onMounted(() => {
   }
   .home-content {
     width: 100%;
+  }
+  .menu-small-logo {
+    display: block;
   }
   .wide-username {
     display: none;

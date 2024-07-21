@@ -86,7 +86,7 @@ onBeforeMount(() => {
   display: flex;
   width: 100%;
   height: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   min-width: 100vw;
 }
 .left-container {
@@ -150,7 +150,7 @@ onBeforeMount(() => {
 @media screen and (max-width: 900px) {
   .login-main {
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
     background: linear-gradient(to bottom, transparent, rgb(68,188,98));
   }
   .left-container, .right-container {
