@@ -2,8 +2,7 @@
   <div class="home-main">
     <!-- For wide screen left menu -->
     <div class="home-menu">
-      <img class="menu-big-logo" src="../../assets/logo.png" alt=""
-        @click="companyLogoClicked">
+      <img class="menu-big-logo" src="../../assets/logo.png" alt="" @click="companyLogoClicked">
       <div v-if="showMenu" class="menu-comp-name">Tri-Factor</div>
 
       <CollapsibleMenu :menuItems="menu" />
@@ -18,12 +17,15 @@
             <img v-else src="https://img.icons8.com/?size=100&id=9433&format=png&color=000000" @click="showHideMenu" alt="">
           </Transition>
         </div>
+        <img class="menu-small-logo" src="../../assets/logo.png" alt="" @click="companyLogoClicked">
         <div class="horizontal-spacer"></div>
-        <div>Username</div>
+        <div class="wide-username">{{ username }}</div>
         <div class="top-right-user-section" @click="showUserSection = !showUserSection">
           <img class="user-logo" src="../../assets/home/user.png" alt="">
           <transition name="user-section-trans">
             <div v-if="showUserSection" class="user-section-open">
+              <div class="narrow-username">{{ username }}</div>
+              <div>{{ loggedInTime }}</div>
               <Button theme="danger" @click="logoutClicked">Log Out</Button>
             </div>
           </transition>
@@ -48,6 +50,7 @@
 <script setup>
 import { ref, onBeforeMount, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
+import { dateFormat } from '../../js/helper';
 
 const router = useRouter();
 
@@ -67,6 +70,8 @@ const menu = ref([ // The list of menu to be shown
     ]
   }
 ])
+const username = ref(''); // The user that is logged in
+const loggedInTime = ref(''); // The user last logged in time
 //#endregion Data
 
 //#region Methods
@@ -97,12 +102,16 @@ onBeforeMount(() => {
   }
 })
 onMounted(() => {
+  // Getting the user name that is logged in to and the time that the user has logged in
+  username.value = localStorage.getItem('user');
+  loggedInTime.value = dateFormat(new Date(localStorage.getItem('loginTime')), 'dd/MM/yyyy HH:mm:ss');
+
   // Check when the screen size changes from narrow to wide, to hide the menu
   window.addEventListener('resize', () => {
     if (window.innerWidth > 1000) {
       showMenu.value = false;
     }
-  })
+  });
 })
 //#endregion Lifecycle
 </script>
@@ -183,6 +192,10 @@ onMounted(() => {
   margin-top: 1em;
   cursor: pointer;
 }
+.menu-small-logo {
+  height: 90%;
+  margin-left: 5px;
+}
 .menu-comp-name {
   margin-bottom: 1.5em;
   font-size: 1.2em;
@@ -229,6 +242,9 @@ onMounted(() => {
   padding: 10px;
   overflow: auto;
 }
+.narrow-username {
+  display: none;
+}
 
 .menu-burger-enter-active, .menu-burger-leave-active,
 .user-section-trans-enter-active, .user-section-trans-leave-active,
@@ -257,6 +273,12 @@ onMounted(() => {
   }
   .home-content {
     width: 100%;
+  }
+  .wide-username {
+    display: none;
+  }
+  .narrow-username {
+    display: block;
   }
 }
 </style>
