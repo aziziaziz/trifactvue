@@ -14,12 +14,13 @@
 </template>
 
 <script setup>
-import { defineProps, ref, onMounted } from 'vue';
+import { defineProps, ref, onMounted, defineEmits } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
 const props = defineProps({
+  // Used to show the list of the menu, you can add additional info if needed, this is minimum.
   menuItems: { type: Array, default: () => [
     {
       menu: 'Menu 1',
@@ -93,17 +94,22 @@ const props = defineProps({
     }
   ] }
 });
+const emit = defineEmits([
+  'menuClicked' // This event is fired when the menu is clicked
+])
 
 //#region Data
-const showChildren = ref([]);
-const menuChildren = ref(null);
-const childrenStartHeight = ref([]);
+const showChildren = ref([]); // The array of true and false of the menu that will be show or hide (expand or collapse)
+const menuChildren = ref(null); // The element of the children of each of the menu, this is an array and used to calculate the height of the children section in order to get a nicer transition
+const childrenStartHeight = ref([]); // Used to set the initial height of each of the menu children
 //#endregion Data
 
 //#region Methods
 const showHideChildren = (ind) => {
+  // Switch between expand or collapse
   showChildren.value[ind] = !showChildren.value[ind];
 
+  // Set the max-height to the child initial height or 0 when collapse
   if (showChildren.value[ind]) {
     menuChildren.value[ind].style.maxHeight = `${childrenStartHeight.value[ind]}px`;
   } else {
@@ -111,6 +117,10 @@ const showHideChildren = (ind) => {
   }
 }
 const menuClicked = (menu) => {
+  // Fire menuClicked event
+  emit('menuClicked');
+
+  // Push to the path declared in the menu item (the children that is clicked) or alert when the path is not set
   if (menu.path) {
     router.push(`/Home/${menu.path}`);
   } else {
@@ -121,11 +131,14 @@ const menuClicked = (menu) => {
 
 //#region Lifecycle
 onMounted(() => {
+  // Only set the the showChildren if the menuItems has item
   if (props.menuItems.length > 0) {
     showChildren.value = props.menuItems.map(m => m.opened);
   }
 
+  // Get the exact height of each of the children element
   childrenStartHeight.value = menuChildren.value.map(m => m.getBoundingClientRect().height);
+  // Set the max-height first, then set the transition to 0.3s so that the first time when loading the page, it will not have transition
   menuChildren.value.forEach((m, mInd) => {
     m.style.maxHeight = showChildren.value[mInd] ? `${childrenStartHeight.value[mInd]}px` : 0;
     m.style.transition = '0.3s';
