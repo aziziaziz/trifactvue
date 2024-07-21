@@ -1,12 +1,17 @@
 <template>
   <div class="home-main">
-    <div :class="['home-menu', { 'home-menu-hide': !showMenu }]">
-      <img :class="['menu-big-logo', { 'menu-big-logo-hide': !showMenu }]" src="https://img.icons8.com/?size=100&id=10403&format=png&color=000000" alt=""
+    <!-- For wide screen left menu -->
+    <div class="home-menu">
+      <img class="menu-big-logo" src="https://img.icons8.com/?size=100&id=10403&format=png&color=000000" alt=""
         @click="companyLogoClicked">
       <div v-if="showMenu" class="menu-comp-name">Tri-Factor</div>
 
       <CollapsibleMenu :menuItems="menu" />
     </div>
+    <!-- For wide screen left menu -->
+    <!-- For Narrow screen menu -->
+    
+    <!-- For Narrow screen menu -->
 
     <div class="home-content">
       <div class="home-top-bar">
@@ -61,7 +66,7 @@ const menu = ref([
 
 //#region Methods
 const showHideMenu = () => {
-  showMenu.value = !showMenu.value;
+  // showMenu.value = !showMenu.value;
 }
 const logoutClicked = () => {
   // To clear all the user details upon logout from the local storage
@@ -186,7 +191,12 @@ onBeforeMount(() => {
 .burger-menu-container {
   height: 30px;
   width: 30px;
+  max-height: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  min-width: 30px;
   position: relative;
+  display: none;
 }
 .burger-menu-container > img {
   height: 100%;
@@ -211,5 +221,17 @@ onBeforeMount(() => {
 .user-section-trans-enter-from, .user-section-trans-leave-to {
   opacity: 0;
   transform: translateX(100%);
+}
+
+@media screen and (max-width: 1000px) {
+  .burger-menu-container {
+    display: block;
+  }
+  .home-menu {
+    display: none;
+  }
+  .home-content {
+    width: 100%;
+  }
 }
 </style>
