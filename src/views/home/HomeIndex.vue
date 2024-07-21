@@ -96,6 +96,14 @@ onBeforeMount(() => {
     router.push('/');
   }
 })
+onMounted(() => {
+  // Check when the screen size changes from narrow to wide, to hide the menu
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1000) {
+      showMenu.value = false;
+    }
+  })
+})
 //#endregion Lifecycle
 </script>
 
