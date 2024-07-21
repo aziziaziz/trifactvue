@@ -9,9 +9,6 @@
       <CollapsibleMenu :menuItems="menu" />
     </div>
     <!-- For wide screen left menu -->
-    <!-- For Narrow screen menu -->
-
-    <!-- For Narrow screen menu -->
 
     <div class="home-content">
       <div class="home-top-bar">
@@ -33,6 +30,14 @@
         </div>
       </div>
 
+      <!-- For Narrow screen menu -->
+      <Transition name="narrow-menu">
+        <div v-if="showMenu" class="home-menu-narrow">
+          <CollapsibleMenu :menuItems="menu" @menuClicked="showMenu = false" />
+        </div>
+      </Transition>
+      <!-- For Narrow screen menu -->
+
       <div class="home-body">
         <router-view />
       </div>
@@ -41,15 +46,15 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue'
+import { ref, onBeforeMount, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
 //#region Data
-const showMenu = ref(true);
-const showUserSection = ref(false);
-const menu = ref([
+const showMenu = ref(false); // To show or hide the menu for narrow screen
+const showUserSection = ref(false); // Show the section under the user icon on the top right
+const menu = ref([ // The list of menu to be shown
   {
     menu: 'Phase 1',
     opened: true,
@@ -66,25 +71,28 @@ const menu = ref([
 
 //#region Methods
 const showHideMenu = () => {
-  // showMenu.value = !showMenu.value;
+  // Switch the show menu to true or false (Only for narrow screen)
+  showMenu.value = !showMenu.value;
 }
 const logoutClicked = () => {
   // To clear all the user details upon logout from the local storage
   localStorage.removeItem('user');
   localStorage.removeItem('loginTime');
 
+  // Push back to home
   router.push('/');
 }
 const companyLogoClicked = () => {
+  // Show the initial page when clicking the logo of the company on the top left
   router.push('/Home');
 }
 //#endregion Methods
 
 //#region Lifecycle
 onBeforeMount(() => {
+  // Get the current user from the local storage and push back to login page if the user does not exist
   let currentUser = localStorage.getItem('user');
-  if (!currentUser) { // This is when the user is null, which means that no user has login
-    // Push to login page to make sure that user needs to be logged in to view the home page
+  if (!currentUser) {
     router.push('/');
   }
 })
@@ -108,6 +116,8 @@ onBeforeMount(() => {
   column-gap: 10px;
   white-space: nowrap;
   box-shadow: 0 0 5px 2px gray;
+  position: relative;
+  z-index: 11;
 }
 .top-right-user-section {
   position: relative;
@@ -148,9 +158,15 @@ onBeforeMount(() => {
   align-items: center;
   transition: 0.3s;
 }
-.home-menu-hide {
-  min-width: 50px;
-  max-width: 50px;
+.home-menu-narrow {
+  position: absolute;
+  left: 0;
+  top: 50px;
+  width: 100%;
+  padding: 10px;
+  z-index: 10;
+  background-color: white;
+  box-shadow: 0 0 10px 2px black;
 }
 .menu-big-logo {
   height: 100px;
@@ -158,11 +174,6 @@ onBeforeMount(() => {
   transition: 0.3s;
   margin-top: 1em;
   cursor: pointer;
-}
-.menu-big-logo-hide {
-  height: 40px;
-  width: 40px;
-  margin-bottom: 1.5em;
 }
 .menu-comp-name {
   margin-bottom: 1.5em;
@@ -190,12 +201,12 @@ onBeforeMount(() => {
   color: black;
 }
 .burger-menu-container {
-  height: 30px;
-  width: 30px;
-  max-height: 30px;
-  min-height: 30px;
-  max-width: 30px;
-  min-width: 30px;
+  height: 20px;
+  width: 20px;
+  max-height: 20px;
+  min-height: 20px;
+  max-width: 20px;
+  min-width: 20px;
   position: relative;
   display: none;
 }
@@ -212,7 +223,8 @@ onBeforeMount(() => {
 }
 
 .menu-burger-enter-active, .menu-burger-leave-active,
-.user-section-trans-enter-active, .user-section-trans-leave-active {
+.user-section-trans-enter-active, .user-section-trans-leave-active,
+.narrow-menu-enter-active, .narrow-menu-leave-active {
   transition: 0.3s;
 }
 .menu-burger-enter-from, .menu-burger-leave-to {
@@ -222,6 +234,10 @@ onBeforeMount(() => {
 .user-section-trans-enter-from, .user-section-trans-leave-to {
   opacity: 0;
   transform: translateX(100%);
+}
+.narrow-menu-enter-from, .narrow-menu-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
 }
 
 @media screen and (max-width: 1000px) {
