@@ -2,7 +2,7 @@
   <div class="home-main">
     <!-- For wide screen left menu -->
     <div class="home-menu">
-      <img class="menu-big-logo" src="https://img.icons8.com/?size=100&id=10403&format=png&color=000000" alt=""
+      <img class="menu-big-logo" src="../../assets/logo.png" alt=""
         @click="companyLogoClicked">
       <div v-if="showMenu" class="menu-comp-name">Tri-Factor</div>
 
@@ -10,7 +10,7 @@
     </div>
     <!-- For wide screen left menu -->
     <!-- For Narrow screen menu -->
-    
+
     <!-- For Narrow screen menu -->
 
     <div class="home-content">
@@ -166,6 +166,7 @@ onBeforeMount(() => {
 }
 .menu-comp-name {
   margin-bottom: 1.5em;
+  font-size: 1.2em;
 }
 .menu-item {
   display: flex;
