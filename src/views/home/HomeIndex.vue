@@ -62,11 +62,11 @@ const menu = ref([ // The list of menu to be shown
     menu: 'Phase 1',
     opened: true,
     children: [
-      { menu: 'Space Requirements', icon: 'ICO', path: 'SpaceReq' },
-      { menu: 'Office Customization', icon: 'ICO' },
-      { menu: 'Retail Customization', icon: 'ICO' },
-      { menu: 'Budget', icon: 'ICO' },
-      { menu: 'Cost Breakdown', icon: 'ICO' }
+      { menu: 'Space Requirements', icon: 'spacereq.png', path: 'SpaceReq' },
+      { menu: 'Office Customization', icon: 'officecustom.png' },
+      { menu: 'Retail Customization', icon: 'retailcustom.png' },
+      { menu: 'Budget', icon: 'budget.png' },
+      { menu: 'Cost Breakdown', icon: 'cost.png' }
     ]
   }
 ])

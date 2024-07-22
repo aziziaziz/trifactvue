@@ -6,7 +6,7 @@
     </div>
     <div class="menu-children" ref="menuChildren">
       <div v-for="(submenu, submenuInd) in menu.children" :key="submenuInd" class="menu-item menu-child" @click="menuClicked(submenu)">
-        <div>{{ submenu.icon }}</div>
+        <img :src="require(`../assets/menu/${submenu.icon}`)" alt="">
         <div>{{ submenu.menu }}</div>
       </div>
     </div>
