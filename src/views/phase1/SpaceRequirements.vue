@@ -3,73 +3,9 @@
     <Button theme="submit" class="add-space-button" @click="addSpaceClicked">Add Space</Button>
     <Input placeholder="Search Space" />
     <div class="space-container">
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">This is a very long text testing for elipsis. This is only when the text overflow, so that it would be hidden. This is not done yet guys. If not enough, you can shrink down a bit your browser to see the effect. This section also clickable to edit or view.</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">This is a bit shorter text</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Somewhat longer than previous, but still shorter than the first</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Short</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Just a random text, I don't know what to write anymore</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Please help me, I'm running out of ideas</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">I'm doing this at 1:30AM :'(</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Hope all this is worth it</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">I'm sleepy</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Texted Shern, but no reply</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Been doing since 11PM just now</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Today is 20th July</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Oh sheet, actually it is already 21st</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Hahaha</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Btw, guys, gotten a new job</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">And already resigned from CIMB.</div>
-      </div>
-      <div class="space-details" @click="spaceDetailsClicked">
-        <div class="space-title">Name</div>
-        <div class="space-description-container">Bye bye</div>
+      <div class="space-details" v-for="(space, spaceInd) in allSpaces" :key="spaceInd" @click="spaceDetailsClicked">
+        <div class="space-title">{{ space.location }}</div>
+        <div class="space-description-container">{{ space.description.map(d => `${d.count} ${d.name.value} (${d.totalSpace} ${space.unit})`).join('; ') }}</div>
       </div>
     </div>
 
@@ -99,7 +35,8 @@
         </div>
       </template>
       <template v-slot:footer>
-        <Button @click="closeClicked">Close</Button>
+        <Button @click="saveSpaceClicked" theme="submit">Save Space</Button>
+        <Button @click="showAddPopup = false" theme="danger">Cancel</Button>
       </template>
     </Popup>
   </div>
@@ -111,35 +48,47 @@ import { roundNumber } from '../../js/helper';
 
 //#region Data
 const showAddPopup = ref(false); // Use to show or hide the add space popup
+const allSpaces = ref([ // The spaces that are available for the user
+  {
+    "location": "KLCC",
+    "unit": "sqft",
+    "description": [
+      { "name": { "value": "Open Workstation" }, "count": "7", "totalSpace": "300" },
+      { "name": { "value": "Enclose Manager Office" }, "count": "3", "totalSpace": "250" },
+      { "name": { "value": "Small Meeting Room" }, "count": "5", "totalSpace": "800" },
+      { "name": { "value": "Medium Meeting Room" }, "count": "3", "totalSpace": "800" },
+      { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
+    ]
+  }
+]);
 const allSpaceDetails = ref([ // Use as a constant for all the available space details
   { value: 'Open Workstation' },
   { value: 'Enclose Manager Office' },
   { value: 'Phone Booth' },
   { value: 'Interview Room' },
-  // { value: 'Small Meeting Room' },
-  // { value: 'Medium Meeting Room' },
-  // { value: 'Large Meeting Room' },
-  // { value: 'Conference Room' },
-  // { value: 'Townhall' },
-  // { value: 'Pantry' },
-  // { value: 'Canteen' },
-  // { value: 'Collaboration Area' },
-  // { value: 'Storage Room' },
-  // { value: 'IT Room' },
-  // { value: 'Reception Lobby' },
-  // { value: 'Recreation Area' },
-  // { value: 'Staff Welfare' },
-  // { value: 'R&D Lab' },
-  // { value: 'Theatre' },
+  { value: 'Small Meeting Room' },
+  { value: 'Medium Meeting Room' },
+  { value: 'Large Meeting Room' },
+  { value: 'Conference Room' },
+  { value: 'Townhall' },
+  { value: 'Pantry' },
+  { value: 'Canteen' },
+  { value: 'Collaboration Area' },
+  { value: 'Storage Room' },
+  { value: 'IT Room' },
+  { value: 'Reception Lobby' },
+  { value: 'Recreation Area' },
+  { value: 'Staff Welfare' },
+  { value: 'R&D Lab' },
+  { value: 'Theatre' },
 ]);
 const remainingSpace = ref([]); // The remaining space that the user can choose to add
 const currentSpaceDetails = ref([ // The current selected space with the details
   { name: { value: 'Open Workstation' }, count: '', totalSpace: '' },
   { name: { value: 'Enclose Manager Office' }, count: '', totalSpace: '' },
-  // { name: { value: 'Interview Room' }, count: '', totalSpace: '' },
-  // { name: { value: 'Small Meeting Room' }, count: '', totalSpace: '' },
-  // { name: { value: 'Medium Meeting Room' }, count: '', totalSpace: '' },
-  // { name: { value: 'Large Meeting Room' }, count: '', totalSpace: '' },
+  { name: { value: 'Small Meeting Room' }, count: '', totalSpace: '' },
+  { name: { value: 'Medium Meeting Room' }, count: '', totalSpace: '' },
+  { name: { value: 'Large Meeting Room' }, count: '', totalSpace: '' },
 ]);
 const unitListing = ref([ // The value use to show in the dropdown for the available unit
   { value: 'Square Meter (sqm)', acronym: 'sqm' },
@@ -159,8 +108,16 @@ const addSpaceClicked = () => { // When adding a new space
 const spaceDetailsClicked = () => {
   alert('Later in the future you can click to view or edit details, now not yet.');
 }
-const closeClicked = () => {
-  console.log(currentSpaceDetails.value);
+const saveSpaceClicked = () => {
+  let newSpace = {
+    location: spaceLocation.value,
+    unit: selectedUnit.value.acronym,
+    description: currentSpaceDetails.value
+  };
+  
+  allSpaces.value.push(newSpace);
+
+  showAddPopup.value = false;
 }
 const addNewSpaceClicked = () => { // When adding a new details to the space
   currentSpaceDetails.value.push({
