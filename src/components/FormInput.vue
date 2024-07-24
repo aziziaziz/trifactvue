@@ -1,12 +1,16 @@
 <template>
 	<div class="input-main">
-		<div class="input-label">Label</div>
+		<div class="input-label">{{ props.placeholder }}</div>
 		<input class="input-box" type="text">
 	</div>
 </template>
 
 <script setup>
-import {  } from 'vue';
+import { defineProps } from 'vue';
+
+const props = defineProps({
+	placeholder: { type: String, default: 'Label' }, // Use the name the label/placeholder
+});
 </script>
 
 <style scoped>
