@@ -59,6 +59,14 @@ const allSpaces = ref([ // The spaces that are available for the user
       { "name": { "value": "Medium Meeting Room" }, "count": "3", "totalSpace": "800" },
       { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
     ]
+  },
+  {
+    "location": "Test",
+    "unit": "sqm",
+    "description": [
+      { "name": { "value": "Open Workstation" }, "count": "15", "totalSpace": "1000" },
+      { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
+    ]
   }
 ]);
 const allSpaceDetails = ref([ // Use as a constant for all the available space details
