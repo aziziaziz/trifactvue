@@ -55,7 +55,7 @@ const props = defineProps({
 .popup-container {
   background-color: white;
   width: calc(100% - 220px);
-  max-width: 500px;
+  /* max-width: 500px; */
   max-height: calc(100% - 70px);
   padding: 10px;
   border-radius: 10px;
