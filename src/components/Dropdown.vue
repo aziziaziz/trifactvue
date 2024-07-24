@@ -26,6 +26,7 @@ const props = defineProps({
   ] },
   selected: Object, // The value of the selected object in the dropdown [2WB]
   placeholder: { type: String, default: "Label" }, // To assign the value of the placeholder/label
+  position: String, // To default the position of the dropdown. Possible value [bottom, top]
 });
 const emit = defineEmits([
   'update:selected', // To handle 2 way binding for the selected when selectedObject changes
@@ -125,17 +126,17 @@ onMounted(() => {
 watch(showDropdown, async (newVal) => {
   if (newVal) {
     await nextTick();
-    // if (dropdownPositionSet.value == 'unset') {
+    if (!props.position) {
       let pageHeight = window.innerHeight;
       let dropdownSelectBottom = dropdownSelectEl.value.getBoundingClientRect().bottom;
 
       if (pageHeight <= dropdownSelectBottom) {
-        dropdownSelectEl.value.classList.add('dropdown-select-container-top')
+        dropdownSelectEl.value.classList.add('dropdown-select-container-top');
         dropdownPositionSet.value = 'top';
       }
-    // } else if (dropdownPositionSet.value == 'top') {
-    //   dropdownSelectEl.value.classList.add('dropdown-select-container-top')
-    // }
+    } else if (props.position == 'top') {
+      dropdownSelectEl.value.classList.add('dropdown-select-container-top');
+    }
     
     dropdownSelectEl.value.focus();
   }
@@ -144,6 +145,9 @@ watch(selectedObject, (val) => {
   // Handle when the selected object changes and update the selected prop for 2 way binding
   emit('update:selected', val);
 });
+watch(() => props.selected, (val) => {
+  selectedObject.value = val;
+})
 //#endregion Watchers
 </script>
 
