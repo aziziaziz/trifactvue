@@ -31,7 +31,7 @@ export const dateFormat = (date, format) => {
 }
 // Padding a number with provided char and final length of the number
 export const padNumber = (num, char = '0', pad = 2) => {
-  // Conver the number to string
+  // Convert the number to string
   let result = num.toString();
   // Padding the result with the char provided
   while (result.length < pad) {
@@ -39,4 +39,16 @@ export const padNumber = (num, char = '0', pad = 2) => {
   }
 
   return result;
+}
+// Round a number to a certain decimal places
+export const roundNumber = (num, decimal) => {
+  num = Number(num);
+  decimal = Number(decimal);
+  
+  if ((!isNaN(num) || !num == undefined) || !isNaN(decimal) || !decimal == undefined) {
+    return Math.round(num * Math.pow(10, decimal)) / Math.pow(10, decimal);
+  } else {
+    console.error(`num: (${num}) OR decimal: (${decimal}) is not a number or undefined`);
+    return 0;
+  }
 }
