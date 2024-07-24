@@ -13,12 +13,14 @@ import Button from './components/Button.vue';
 import CollapsibleMenu from './components/CollapsibleMenu.vue';
 import Dropdown from './components/Dropdown.vue';
 import FormInput from './components/FormInput.vue';
+import Popup from './components/Popup.vue';
 
 app.component('Input', Input);
 app.component('Button', Button);
 app.component('CollapsibleMenu', CollapsibleMenu);
 app.component('Dropdown', Dropdown);
 app.component('FormInput', FormInput);
+app.component('Popup', Popup);
 //#endregion Global component section
 
 app.use(store);
