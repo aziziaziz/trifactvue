@@ -97,8 +97,8 @@ const props = defineProps({
   .popup-main {
     padding-left: 10px;
   }
-  .popup-content {
-    width: 80%;
+  .popup-container {
+    width: calc(100% - 20px);
   }
 }
 </style>
