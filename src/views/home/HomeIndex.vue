@@ -63,7 +63,7 @@ const menu = ref([ // The list of menu to be shown
     opened: true,
     children: [
       { menu: 'Space Requirements', icon: 'spacereq.png', path: 'SpaceReq' },
-      { menu: 'Office Customization', icon: 'officecustom.png' },
+      { menu: 'Office Customization', icon: 'officecustom.png', path: 'OfficeCustom' },
       { menu: 'Retail Customization', icon: 'retailcustom.png' },
       { menu: 'Budget', icon: 'budget.png' },
       { menu: 'Cost Breakdown', icon: 'cost.png' }

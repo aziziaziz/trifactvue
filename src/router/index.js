@@ -21,6 +21,11 @@ const routes = [
         path: 'SpaceReq',
         name: 'Space Requirements [Phase 1]',
         component: () => import('../views/phase1/SpaceRequirements.vue')
+      },
+      {
+        path: 'OfficeCustom',
+        name: 'Office Customization [Phase 1]',
+        component: () => import('../views/phase1/OfficeCustomization.vue')
       }
     ]
   }
