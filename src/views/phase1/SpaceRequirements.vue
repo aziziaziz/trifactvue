@@ -3,7 +3,7 @@
     <Button theme="submit" class="add-space-button" @click="addSpaceClicked">Add Space</Button>
     <Input placeholder="Search Space" />
     <div class="space-container">
-      <div class="space-details" v-for="(space, spaceInd) in allSpaces" :key="spaceInd" @click="spaceDetailsClicked">
+      <div class="space-details" v-for="(space, spaceInd) in allSpaces" :key="spaceInd" @click="spaceDetailsClicked(spaceInd)">
         <div class="space-title">{{ space.location }}</div>
         <div class="space-description-container">{{ space.description.map(d => `${d.count} ${d.name.value} (${d.totalSpace} ${space.unit})`).join('; ') }}</div>
       </div>
@@ -35,7 +35,7 @@
         </div>
       </template>
       <template v-slot:footer>
-        <Button @click="saveSpaceClicked" theme="submit">Save Space</Button>
+        <Button @click="saveSpaceClicked" theme="submit">{{ popupEditIndex >= 0 ? 'Update' : 'Save' }} Space</Button>
         <Button @click="showAddPopup = false" theme="danger">Cancel</Button>
       </template>
     </Popup>
@@ -96,17 +96,43 @@ const unitListing = ref([ // The value use to show in the dropdown for the avail
 ]);
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The default value of the unit
 const spaceLocation = ref(''); // The location of the space
-const newlySelectedSpace = ref(null);
+const newlySelectedSpace = ref(null); // The new space description to be added
+const popupEditIndex = ref(-1); // The popup is in edit mode if the index is more than or equals to 0
 //#endregion Data
 
 //#region Methods
 const addSpaceClicked = () => { // When adding a new space
+  // Populating default values
+  spaceLocation.value = '';
+  selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
+  currentSpaceDetails.value = [
+    { name: { value: 'Open Workstation' }, count: '', totalSpace: '' },
+    { name: { value: 'Enclose Manager Office' }, count: '', totalSpace: '' },
+    { name: { value: 'Small Meeting Room' }, count: '', totalSpace: '' },
+    { name: { value: 'Medium Meeting Room' }, count: '', totalSpace: '' },
+    { name: { value: 'Large Meeting Room' }, count: '', totalSpace: '' },
+  ];
+
   showAddPopup.value = true;
+  popupEditIndex.value = -1;
 
   getRemainingSpace();
 }
-const spaceDetailsClicked = () => {
-  alert('Later in the future you can click to view or edit details, now not yet.');
+const spaceDetailsClicked = (ind) => {
+  // Get the space index to view or edit and assign to the edit index
+  let space = allSpaces.value[ind];
+  popupEditIndex.value = ind;
+
+  // // Populate the data
+  spaceLocation.value = space.location;
+  selectedUnit.value = unitListing.value.find(u => u.acronym == space.unit);
+  currentSpaceDetails.value = space.description;
+
+  // Getting the remaining space for update
+  getRemainingSpace();
+
+  // Showing the popup
+  showAddPopup.value = true;
 }
 const saveSpaceClicked = () => {
   let newSpace = {
@@ -115,7 +141,12 @@ const saveSpaceClicked = () => {
     description: currentSpaceDetails.value
   };
   
-  allSpaces.value.push(newSpace);
+  // To splice or add the value if it is in edit more or new mode
+  if (popupEditIndex.value >= 0) {
+    allSpaces.value.splice(popupEditIndex.value, 1, newSpace);
+  } else {
+    allSpaces.value.push(newSpace);
+  }
 
   showAddPopup.value = false;
 }
