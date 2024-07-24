@@ -1,6 +1,6 @@
 <template>
   <div class="dropdown-main">
-    <div class="dropdown-label">Label</div>
+    <div class="dropdown-label">{{ placeholder }}</div>
     <div class="dropdown-container" tabindex="0" @keydown="dropdownKeydown" @click="dropdownClicked" @blur="dropdownFocusOut" ref="dropdownContainerEl">
       <div v-if="selectedObject">{{ selectedObject.value }}</div>
       <div v-else class="dropdown-placeholder">Please Select</div>
@@ -16,41 +16,29 @@
 </template>
 
 <script setup>
-import { ref, defineProps, nextTick, watch } from 'vue'
+import { ref, defineProps, nextTick, watch, onMounted, defineEmits } from 'vue'
 
 const props = defineProps({
-  items: { type: Array, default: () => [
-    { value: 'Testing1' },
-    { value: 'Testing2' },
-    { value: 'Testing3' },
-    { value: 'Testing4' },
-    { value: 'Testing5' },
-    { value: 'Testing6' },
-    { value: 'Testing7' },
-    { value: 'Testing8' },
-    { value: 'Testing9' },
-    { value: 'Testing10' },
-    { value: 'Testing11' },
-    { value: 'Testing12' },
-    { value: 'Testing13' },
-    { value: 'Testing14' },
-    { value: 'Testing15' },
-    { value: 'Testing16' },
-    { value: 'Testing17' },
-    { value: 'Testing18' },
-    { value: 'Testing19' },
-    { value: 'Testing20' }
-  ] }
+  items: { type: Array, default: () => [ // Populate the items in the dropdown. Object my contain value key. Containing other keys will not impact the dropdown listing
+    { value: 'Dropdown item 1' },
+    { value: 'Dropdown item 2' },
+    { value: 'Dropdown item 3' }
+  ] },
+  selected: Object, // The value of the selected object in the dropdown [2WB]
+  placeholder: { type: String, default: "Label" }, // To assign the value of the placeholder/label
 });
+const emit = defineEmits([
+  'update:selected', // To handle 2 way binding for the selected when selectedObject changes
+]);
 
 //#region Data
-const selectedObject = ref(null);
-const showDropdown = ref(false);
-const dropdownContainerEl = ref(null);
-const dropdownItemEl = ref(null);
-const dropdownSelectEl = ref(null);
-const dropdownItemHover = ref(false);
-const dropdownPositionSet = ref('unset');
+const showDropdown = ref(false); // To show or hide the dropdown
+const dropdownContainerEl = ref(null); // The container for the dropdown
+const dropdownItemEl = ref(null); // The element for the dropdown item
+const dropdownSelectEl = ref(null); // The container element for the dropdown element
+const dropdownItemHover = ref(false); // When hovering on the item to make sure that the item is clickable
+const dropdownPositionSet = ref('unset'); // To set the dropdown position either top or bottom based on the screen height
+const selectedObject = ref(null); // Private selected object, bind to selected props
 //#endregion Data
 
 //#region Methods
@@ -125,6 +113,14 @@ const highlightDropdownItem = (ind) => {
 }
 //#endregion Methods
 
+//#region Lifecycle
+onMounted(() => {
+  if (props.selected) {
+    selectedObject.value = props.selected;
+  }
+});
+//#endregion Lifecycle
+
 //#region Watchers
 watch(showDropdown, async (newVal) => {
   if (newVal) {
@@ -144,6 +140,10 @@ watch(showDropdown, async (newVal) => {
     dropdownSelectEl.value.focus();
   }
 })
+watch(selectedObject, (val) => {
+  // Handle when the selected object changes and update the selected prop for 2 way binding
+  emit('update:selected', val);
+});
 //#endregion Watchers
 </script>
 
