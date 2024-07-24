@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { defineProps, ref, defineEmits } from 'vue';
+import { defineProps, ref, defineEmits, onMounted, watch } from 'vue';
 
 const props = defineProps({
 	placeholder: { type: String, default: 'Label' }, // Use the name the label/placeholder
@@ -25,6 +25,20 @@ const userInput = () => {
 	emit('update:value', inputValue.value);
 }
 //#endregion Method
+
+//#region Lifecycle
+onMounted(() => {
+	if (props.value) {
+		inputValue.value = props.value;
+	}
+});
+//#endregion Lifecycle
+
+//#region Watchers
+watch(() => props.value, (val) => {
+	inputValue.value = val;
+});
+//#endregion Watchers
 </script>
 
 <style scoped>
