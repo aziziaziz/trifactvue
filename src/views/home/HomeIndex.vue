@@ -49,10 +49,13 @@
 
 <script setup>
 import { ref, onBeforeMount, onMounted } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { dateFormat } from '../../js/helper';
+import { useStore } from 'vuex';
 
 const router = useRouter();
+const route = useRoute();
+const store = useStore();
 
 //#region Data
 const showMenu = ref(false); // To show or hide the menu for narrow screen
@@ -91,6 +94,13 @@ const companyLogoClicked = () => {
   // Show the initial page when clicking the logo of the company on the top left
   router.push('/Home');
 }
+const checkCurrentSpace = () => {
+  if (route.name != 'Home') { // Checking if the current route is not home
+    if (!store.state.currentSpace) { // If the current space is empty
+      router.push('/Home?choose');
+    }
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -111,6 +121,14 @@ onMounted(() => {
     if (window.innerWidth > 1000) {
       showMenu.value = false;
     }
+  });
+
+  // To check if current space is empty, to go to home page
+  checkCurrentSpace();
+
+  // When the router changes, then check the current space is empty or not
+  router.afterEach(() => {
+    checkCurrentSpace();
   });
 })
 //#endregion Lifecycle
