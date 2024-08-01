@@ -52,3 +52,7 @@ export const roundNumber = (num, decimal) => {
     return 0;
   }
 }
+// To fake waiting
+export const wait = (time) => { // Time in milliseconds
+  return new Promise(r => setTimeout(() => r(), time));
+}
