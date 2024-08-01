@@ -1,7 +1,7 @@
 <template>
   <div class="home-container">
     <Button theme="submit" class="add-space-button" @click="addLocationClicked">Add Location</Button>
-    <Input placeholder="Search Space" />
+    <Input placeholder="Search Location" />
     <div v-if="allLocations.length > 0" class="space-container">
       <div class="space-details" v-for="(space, spaceInd) in allLocations" :key="spaceInd" @click="locationDetailsClicked(spaceInd)">
         <div class="space-title">{{ store.state.currentLocation ? (store.state.currentLocation.location == space.location ? '✓' : '') : '' }} {{ space.location }}</div>
