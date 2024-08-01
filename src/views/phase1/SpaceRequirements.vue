@@ -1,74 +1,38 @@
 <template>
   <div class="space-main">
-    <Button theme="submit" class="add-space-button" @click="addSpaceClicked">Add Space</Button>
-    <Input placeholder="Search Space" />
-    <div class="space-container">
-      <div class="space-details" v-for="(space, spaceInd) in allSpaces" :key="spaceInd" @click="spaceDetailsClicked(spaceInd)">
-        <div class="space-title">{{ space.location }}</div>
-        <div class="space-description-container">{{ space.description.map(d => `${d.count} ${d.name.value} (${d.totalSpace} ${space.unit})`).join('; ') }}</div>
+    <Button class="save-space-button" theme="submit" @click="saveSpaceClicked" :loading="savingSpace">Save Space</Button>
+    <div class="new-space-container">
+      <Dropdown placeholder="Space unit" :items="unitListing" v-model:selected="selectedUnit" />
+      <div>Contains of {{ currentSpaceDetails.length }} space{{ currentSpaceDetails.length > 1 ? 's' : '' }}</div>
+      <div class="space-details-container" v-for="(space,spaceInd) in currentSpaceDetails" :key="spaceInd">
+        <div class="space-description">
+          <div>{{ space.name.value }}</div>
+          <img @click="deleteSpaceDescription(spaceInd)" src="../../assets/delete.png" alt="">
+        </div>
+        <div class="space-count">
+          <FormInput placeholder="Space Count" v-model:value="space.count" />
+          <FormInput placeholder="Space Total Area" v-model:value="space.totalSpace" />
+        </div>
+        <div>{{ isNaN(Number(space.totalSpace) / Number(space.count)) ? 0 : roundNumber(Number(space.totalSpace) / Number(space.count), 2) }} {{ selectedUnit.acronym }} per {{ space.name.value }}</div>
+      </div>
+      <div v-if="remainingSpace.length > 0" class="space-details-container">
+        <Dropdown placeholder="Space Decription" :items="remainingSpace" v-model:selected="newlySelectedSpace" :position="currentSpaceDetails.length > 1 ? 'top' : 'bottom'" />
+        <Button theme="submit" @click="addNewSpaceClicked">Add Space</Button>
       </div>
     </div>
-
-    <Popup :show="showAddPopup">
-      <template v-slot:header>Add a Space</template>
-      <template v-slot:content>
-        <div class="new-space-container">
-          <FormInput placeholder="Location name" v-model:value="spaceLocation" />
-          <Dropdown placeholder="Space unit" :items="unitListing" v-model:selected="selectedUnit" />
-          <div>Contains of {{ currentSpaceDetails.length }} space{{ currentSpaceDetails.length > 1 ? 's' : '' }}</div>
-          <div class="space-details-container" v-for="(space,spaceInd) in currentSpaceDetails" :key="spaceInd">
-            <div class="space-description">
-              <div>{{ space.name.value }}</div>
-              <img @click="deleteSpaceDescription(spaceInd)" src="../../assets/delete.png" alt="">
-            </div>
-            <!-- <Dropdown placeholder="Space Decription" :items="allSpaceDetails" v-model:selected="space.name" /> -->
-            <div class="space-count">
-              <FormInput placeholder="Space Count" v-model:value="space.count" />
-              <FormInput placeholder="Space Total Area" v-model:value="space.totalSpace" />
-            </div>
-            <div>{{ isNaN(Number(space.totalSpace) / Number(space.count)) ? 0 : roundNumber(Number(space.totalSpace) / Number(space.count), 2) }} {{ selectedUnit.acronym }} per {{ space.name.value }}</div>
-          </div>
-          <div v-if="remainingSpace.length > 0" class="space-details-container">
-            <Dropdown placeholder="Space Decription" :items="remainingSpace" v-model:selected="newlySelectedSpace" position="top" />
-            <Button theme="submit" @click="addNewSpaceClicked">Add Space</Button>
-          </div>
-        </div>
-      </template>
-      <template v-slot:footer>
-        <Button @click="saveSpaceClicked" theme="submit">{{ popupEditIndex >= 0 ? 'Update' : 'Save' }} Space</Button>
-        <Button @click="showAddPopup = false" theme="danger">Cancel</Button>
-      </template>
-    </Popup>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { roundNumber } from '../../js/helper';
+import { ref, onMounted } from 'vue';
+import { roundNumber, wait } from '../../js/helper';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
+
+const store = useStore();
+const router = useRouter();
 
 //#region Data
-const showAddPopup = ref(false); // Use to show or hide the add space popup
-const allSpaces = ref([ // The spaces that are available for the user
-  {
-    "location": "KLCC",
-    "unit": "sqft",
-    "description": [
-      { "name": { "value": "Open Workstation" }, "count": "7", "totalSpace": "300" },
-      { "name": { "value": "Enclose Manager Office" }, "count": "3", "totalSpace": "250" },
-      { "name": { "value": "Small Meeting Room" }, "count": "5", "totalSpace": "800" },
-      { "name": { "value": "Medium Meeting Room" }, "count": "3", "totalSpace": "800" },
-      { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
-    ]
-  },
-  {
-    "location": "Test",
-    "unit": "sqm",
-    "description": [
-      { "name": { "value": "Open Workstation" }, "count": "15", "totalSpace": "1000" },
-      { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
-    ]
-  }
-]);
 const allSpaceDetails = ref([ // Use as a constant for all the available space details
   { value: 'Open Workstation' },
   { value: 'Enclose Manager Office' },
@@ -103,61 +67,11 @@ const unitListing = ref([ // The value use to show in the dropdown for the avail
   { value: 'Square Feet (sqft)', acronym: 'sqft' },
 ]);
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The default value of the unit
-const spaceLocation = ref(''); // The location of the space
 const newlySelectedSpace = ref(null); // The new space description to be added
-const popupEditIndex = ref(-1); // The popup is in edit mode if the index is more than or equals to 0
+const savingSpace = ref(false); // Loading when saving the space
 //#endregion Data
 
 //#region Methods
-const addSpaceClicked = () => { // When adding a new space
-  // Populating default values
-  spaceLocation.value = '';
-  selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
-  currentSpaceDetails.value = [
-    { name: { value: 'Open Workstation' }, count: '', totalSpace: '' },
-    { name: { value: 'Enclose Manager Office' }, count: '', totalSpace: '' },
-    { name: { value: 'Small Meeting Room' }, count: '', totalSpace: '' },
-    { name: { value: 'Medium Meeting Room' }, count: '', totalSpace: '' },
-    { name: { value: 'Large Meeting Room' }, count: '', totalSpace: '' },
-  ];
-
-  showAddPopup.value = true;
-  popupEditIndex.value = -1;
-
-  getRemainingSpace();
-}
-const spaceDetailsClicked = (ind) => {
-  // Get the space index to view or edit and assign to the edit index
-  let space = allSpaces.value[ind];
-  popupEditIndex.value = ind;
-
-  // // Populate the data
-  spaceLocation.value = space.location;
-  selectedUnit.value = unitListing.value.find(u => u.acronym == space.unit);
-  currentSpaceDetails.value = space.description;
-
-  // Getting the remaining space for update
-  getRemainingSpace();
-
-  // Showing the popup
-  showAddPopup.value = true;
-}
-const saveSpaceClicked = () => {
-  let newSpace = {
-    location: spaceLocation.value,
-    unit: selectedUnit.value.acronym,
-    description: currentSpaceDetails.value
-  };
-  
-  // To splice or add the value if it is in edit more or new mode
-  if (popupEditIndex.value >= 0) {
-    allSpaces.value.splice(popupEditIndex.value, 1, newSpace);
-  } else {
-    allSpaces.value.push(newSpace);
-  }
-
-  showAddPopup.value = false;
-}
 const addNewSpaceClicked = () => { // When adding a new details to the space
   currentSpaceDetails.value.push({
     name: newlySelectedSpace.value, count: '', totalSpace: ''
@@ -174,53 +88,49 @@ const deleteSpaceDescription = (ind) => {
 const getRemainingSpace = () => {
   remainingSpace.value = allSpaceDetails.value.filter(s => !currentSpaceDetails.value.find(c => s.value == c.name.value));
 }
+const saveSpaceClicked = async () => {
+  // Simulate saving
+  savingSpace.value = true;
+  await wait(1000);
+  savingSpace.value = false;
+
+  // Update the store
+  store.commit('updateLocation', {
+    location: store.state.currentLocation.location,
+    description: currentSpaceDetails.value
+  });
+}
 //#endregion Methods
+
+//#region Lifecycle
+onMounted(() => {
+  if (store.state.currentLocation) {
+    currentSpaceDetails.value = store.state.currentLocation.description;
+    selectedUnit.value = unitListing.value.find(u => u.acronym == store.state.currentLocation.unit);
+
+    getRemainingSpace();
+  } else {
+    router.push('/Home?choose');
+  }
+});
+//#endregion Lifecycle
 </script>
 
 <style scoped>
 .space-main {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.add-space-button {
-  width: fit-content;
-  align-self: flex-end;
-}
-.space-container {
-  display: flex;
-  flex-direction: column;
-  max-height: 100%;
-  overflow: auto;
-  margin-top: 10px;
-}
-.space-details {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid gray;
-  border-radius: 10px;
-  padding: 10px;
-  cursor: pointer;
-}
-.space-details:not(:first-child) {
-  margin-top: 10px;
-}
-.space-title {
-  font-size: 1.2em;
-  font-weight: bold;
-}
-.space-description-container {
-  align-items: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
 .space-details-container {
   border: 1px solid gray;
   border-radius: 10px;
   padding: 10px;
   margin-top: 10px;
+}
+.save-space-button {
+  width: fit-content;
+  align-self: flex-end;
 }
 .space-count {
   display: flex;
@@ -232,6 +142,12 @@ const getRemainingSpace = () => {
 }
 .space-count > :not(:first-child) {
   margin-top: 5px;
+}
+.new-space-container {
+  margin-top: 5px;
+  max-height: 100%;
+  min-height: 90%;
+  overflow: auto;
 }
 .new-space-container > :not(:first-child), .space-details-container > :not(:first-child) {
   margin-top: 5px;
