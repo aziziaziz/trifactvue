@@ -18,6 +18,7 @@
           </Transition>
         </div>
         <img class="menu-small-logo" src="../../assets/logo.png" alt="" @click="companyLogoClicked">
+        <div v-if="store.state.currentLocation">{{ displayLabel }}: {{ store.state.currentLocation.location }}</div>
         <div class="horizontal-spacer"></div>
         <div class="wide-username">{{ username }}</div>
         <div class="top-right-user-section" @click="showUserSection = !showUserSection">
@@ -49,12 +50,11 @@
 
 <script setup>
 import { ref, onBeforeMount, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { dateFormat } from '../../js/helper';
 import { useStore } from 'vuex';
 
 const router = useRouter();
-const route = useRoute();
 const store = useStore();
 
 //#region Data
@@ -75,6 +75,7 @@ const menu = ref([ // The list of menu to be shown
 ])
 const username = ref(''); // The user that is logged in
 const loggedInTime = ref(''); // The user last logged in time
+const displayLabel = ref('Current Location'); // Use to show the label on the top left of the top bar
 //#endregion Data
 
 //#region Methods
@@ -93,13 +94,6 @@ const logoutClicked = () => {
 const companyLogoClicked = () => {
   // Show the initial page when clicking the logo of the company on the top left
   router.push('/Home');
-}
-const checkCurrentSpace = () => {
-  if (route.name != 'Home') { // Checking if the current route is not home
-    if (!store.state.currentSpace) { // If the current space is empty
-      router.push('/Home?choose');
-    }
-  }
 }
 //#endregion Methods
 
@@ -123,12 +117,9 @@ onMounted(() => {
     }
   });
 
-  // To check if current space is empty, to go to home page
-  checkCurrentSpace();
-
-  // When the router changes, then check the current space is empty or not
-  router.afterEach(() => {
-    checkCurrentSpace();
+  // When the router changes, then get the display name
+  router.afterEach((to) => {
+    displayLabel.value = to.meta.displayName || 'Current Location';
   });
 })
 //#endregion Lifecycle
