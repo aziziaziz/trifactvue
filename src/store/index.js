@@ -30,9 +30,13 @@ export default createStore({
     ]
   },
   mutations: {
-    // updateLocation (state, payload) {
+    updateLocation (state, payload) {
+      let location = state.allLocation.find(l => l.location == payload.location);
+      let locationIndex = state.allLocation.findIndex(l => l.location == payload.location);
 
-    // },
+      location.description = payload.description;
+      state.allLocation.splice(locationIndex, 1, location);
+    },
     insertLocation (state, loc) {
       state.allLocation.push(loc);
     }
