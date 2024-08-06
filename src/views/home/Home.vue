@@ -3,9 +3,8 @@
     <Button theme="submit" class="add-space-button" @click="addLocationClicked">Add Location</Button>
     <Input placeholder="Search Location" />
     <div v-if="allLocations.length > 0" class="space-container">
-      <div class="space-details" v-for="(space, spaceInd) in allLocations" :key="spaceInd" @click="locationDetailsClicked(spaceInd)">
-        <div class="space-title">{{ store.state.currentLocation ? (store.state.currentLocation.location == space.location ? '✓' : '') : '' }} {{ space.location }}</div>
-        <div class="space-description-container">{{ space.description.map(d => `${d.count} ${d.name.value} (${d.totalSpace} ${space.unit})`).join('; ') }}</div>
+      <div class="space-details" v-for="(loc, locInd) in allLocations" :key="locInd" @click="locationDetailsClicked(locInd)">
+        <div class="space-title">{{ store.state.currentLocation ? (store.state.currentLocation.client_name == loc.client_name ? '✓' : '') : '' }} {{ loc.client_name }}</div>
       </div>
     </div>
     <div v-else-if="locationLoading">Loading Locations</div>
@@ -29,6 +28,7 @@
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { wait } from '../../js/helper';
+import { get } from '../../js/apiCall';
 
 const store = useStore();
 
@@ -84,10 +84,10 @@ const saveLocationClicked = async () => { // When a new location is saved
 onMounted(async () => {
   unitList.value = store.state.unitListing;
 
+  // Getting all the clients from the DB
   locationLoading.value = true;
-  await wait(1000);
+  allLocations.value = await get('Client/GetAllClient');
   locationLoading.value = false;
-  allLocations.value = store.state.allLocation;
 });
 //#endregion Lifecycle
 </script>
