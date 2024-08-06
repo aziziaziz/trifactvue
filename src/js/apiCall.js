@@ -8,3 +8,8 @@ export const get = async (endpoint) => {
   let result = await api.get(endpoint);
   return result.data;
 }
+
+export const post = async (endpoint, data) => {
+  let result = await api.post(endpoint, data);
+  return result.data;
+}
