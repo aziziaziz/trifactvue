@@ -27,8 +27,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
-import { wait } from '../../js/helper';
-import { get } from '../../js/apiCall';
+import { get, post } from '../../js/apiCall';
 
 const store = useStore();
 
@@ -58,25 +57,34 @@ const addLocationClicked = () => { // When adding a new location
   showAddLocationPopup.value = true;
 }
 const saveLocationClicked = async () => { // When a new location is saved
-  // Simulate saving
+  // Saving to DB
+  let saveObj = {
+    client_name: locationName.value,
+    sqm_sqft: selectedUnit.value.acronym
+  };
   savingLocation.value = true;
-  await wait(1000);
+  let saveClient = await post('Client/InsertClient', saveObj);
   savingLocation.value = false;
 
-  // Insert to store [Call Backend in future]
-  store.commit('insertLocation', {
-    location: locationName.value,
-    unit: selectedUnit.value.acronym,
-    description: []
-  });
-  showAddLocationPopup.value = false;
+  if (saveClient) { // If saving the client success
+    // Close the popup
+    showAddLocationPopup.value = false;
+  
+    // Gett all locations from the DB
+    getAllLocations();
+  } else { // If saving the client failed
+    console.error('Failed to save the client');
+  }
 
-  // Get from store [Call backend]
+}
+const getAllLocations = async () => {
+  // Empty the locations first
   allLocations.value = [];
+
+  // Getting all the clients from the DB
   locationLoading.value = true;
-  await wait(1000);
+  allLocations.value = await get('Client/GetAllClient');
   locationLoading.value = false;
-  allLocations.value = store.state.allLocation;
 }
 //#endregion Methods
 
@@ -84,10 +92,8 @@ const saveLocationClicked = async () => { // When a new location is saved
 onMounted(async () => {
   unitList.value = store.state.unitListing;
 
-  // Getting all the clients from the DB
-  locationLoading.value = true;
-  allLocations.value = await get('Client/GetAllClient');
-  locationLoading.value = false;
+  // Getting the locations from the DB
+  getAllLocations();
 });
 //#endregion Lifecycle
 </script>
