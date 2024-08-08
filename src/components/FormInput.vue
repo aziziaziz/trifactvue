@@ -1,6 +1,6 @@
 <template>
 	<div class="input-main">
-		<div class="input-label">{{ props.placeholder }} <span v-if="value" class="error-text">**</span></div>
+		<div class="input-label">{{ props.placeholder }} <span v-if="isRequired" class="error-text">**</span></div>
 		<input class="input-box" type="text" v-model="inputValue" @input="userInput">
 		<!-- <div>Error message here</div> -->
 	</div>
