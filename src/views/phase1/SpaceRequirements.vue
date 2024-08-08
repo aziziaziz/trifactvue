@@ -26,7 +26,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { roundNumber, wait } from '../../js/helper';
+import { roundNumber } from '../../js/helper';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { get } from '../../js/apiCall';
@@ -37,6 +37,7 @@ const router = useRouter();
 //#region Data
 const allSpaceDetails = ref([]); // All available space details
 const remainingSpace = ref([]); // The remaining space that the user can choose to add
+const originalSpaceDetails = ref([]); // The original space details when retrieving from the DB. to be compare when saving
 const currentSpaceDetails = ref([]); // The current selected space with the details
 const unitListing = ref([]); // The value use to show in the dropdown for the available unit
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The default value of the unit
@@ -47,12 +48,24 @@ const isLoading = ref(false); // Used when loading the space requirements from t
 
 //#region Methods
 const addNewSpaceClicked = () => { // When adding a new details to the space
+  // Adding the newly added space into the current spacedetails
   currentSpaceDetails.value.push({
-    name: newlySelectedSpace.value, count: '', totalSpace: ''
+    "client_uid": store.state.currentClient.client_uid,
+    "space_uid": newlySelectedSpace.value.space_uid,
+    "sqm_sqft": store.state.currentClient.sqm_sqft,
+    "description": newlySelectedSpace.value.space_description,
+    "types": "",
+    "number_ranking": 0,
+    "space_count": 1,
+    "total_area": 10,
+    "layout_selection": "",
+    "username": localStorage.getItem('user')
   });
 
+  // Clearing the selected space
   newlySelectedSpace.value = null;
 
+  // Get the remaining space available to add
   getRemainingSpace();
 }
 const deleteSpaceDescription = (ind) => {
@@ -63,16 +76,18 @@ const getRemainingSpace = () => {
   remainingSpace.value = allSpaceDetails.value.filter(s => !currentSpaceDetails.value.find(c => s.value == c.description));
 }
 const saveSpaceClicked = async () => {
-  // Simulate saving
-  savingSpace.value = true;
-  await wait(1000);
-  savingSpace.value = false;
+  console.log(originalSpaceDetails.value);
+  console.log(currentSpaceDetails.value);
+  // // Simulate saving
+  // savingSpace.value = true;
+  // await wait(1000);
+  // savingSpace.value = false;
 
-  // Update the store
-  store.commit('updateLocation', {
-    location: store.state.currentClient.location,
-    description: currentSpaceDetails.value
-  });
+  // // Update the store
+  // store.commit('updateLocation', {
+  //   location: store.state.currentClient.location,
+  //   description: currentSpaceDetails.value
+  // });
 }
 //#endregion Methods
 
@@ -87,7 +102,9 @@ onMounted(async () => {
 
   if (store.state.currentClient) {
     // Loading the client space requirements from the DB
+    isLoading.value = true;
     currentSpaceDetails.value = await get(`Space/SpaceRequirements?client_uid=${store.state.currentClient.client_uid}`);
+    originalSpaceDetails.value = JSON.parse(JSON.stringify(currentSpaceDetails.value));
     isLoading.value = false;
 
     selectedUnit.value = unitListing.value.find(u => u.acronym == store.state.currentClient.sqm_sqft);
