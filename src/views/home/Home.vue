@@ -14,7 +14,7 @@
       <template v-slot:header>Add Client</template>
       <template v-slot:content>
         <div class="popup-content-container">
-          <FormInput placeholder="Client name" v-model:value="clientName" />
+          <FormInput placeholder="Client name" v-model:value="clientName" :isRequired="true" v-model:errorMessage="clientNameError" />
           <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
         </div>
       </template>
@@ -40,6 +40,7 @@ const allClients = ref([]); // The spaces that are available for the user
 const clientLoading = ref(false); // Used to show the loading when loading the client from DB
 const showAddClientPopup = ref(false); // Use to show the popup to add client
 const clientName = ref(''); // Used when adding a new client
+const clientNameError = ref(''); // Used to show the error of the client name
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
 const unitList = ref([]); // The list of availale units
 const savingClient = ref(false); // To show loading when saving the client
@@ -55,12 +56,21 @@ const clientDetailsClicked = (ind) => {
 const addClientClicked = () => { // When adding a new client
   // Reset the values to default
   clientName.value = '';
+  clientNameError.value = '';
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
 
   // To show the popup
   showAddClientPopup.value = true;
 }
 const saveClientClicked = async () => { // When a new client is saved
+  // Checking if the client name is empty
+  if (!clientName.value) {
+    // Show the error message
+    clientNameError.value = 'Client Name is required!';
+    // Stop the method from going further
+    return;
+  }
+
   // Saving to DB
   let saveObj = {
     client_name: clientName.value,
