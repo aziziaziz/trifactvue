@@ -15,4 +15,7 @@ body {
 .vertical-spacer {
   height: 100%;
 }
+.error-text {
+  color: indianred;
+}
 </style>
