@@ -78,9 +78,29 @@ const saveClientClicked = async () => { // When a new client is saved
   };
   savingClient.value = true;
   let saveClient = await post('Client/InsertClient', saveObj);
-  savingClient.value = false;
 
-  if (saveClient) { // If saving the client success
+  if (saveClient.success) { // If saving the client success
+    // Getting the first 3 of the spacelisting
+    let defaultSpace = store.state.spaceListing.slice(0, 3);
+
+    // Reformat to the value to post for the body
+    let spaceToAdd = defaultSpace.map(s => ({
+      username: localStorage.getItem('user'),
+      client_uid: Number(saveClient.insertedPK),
+      space_uid: Number(s.space_uid),
+      sqm_sqft: selectedUnit.value.acronym,
+      description: s.space_description,
+      types: '',
+      number_ranking: 0,
+      space_count: 1,
+      total_area: selectedUnit.value.acronym == 'sqft' ? 30 : 10,
+      layout_selection: ''
+    }));
+    
+    // Saving the space requirements
+    await post(`Space/InsertSpaceRequirements`, spaceToAdd);
+    savingClient.value = false;
+    
     // Close the popup
     showAddClientPopup.value = false;
   
@@ -89,7 +109,6 @@ const saveClientClicked = async () => { // When a new client is saved
   } else { // If saving the client failed
     console.error('Failed to save the client');
   }
-
 }
 const getAllClients = async () => {
   // Empty the clients first
