@@ -96,7 +96,7 @@ const saveSpaceClicked = async () => {
 
   // Update the store
   store.commit('updateLocation', {
-    location: store.state.currentLocation.location,
+    location: store.state.currentClient.location,
     description: currentSpaceDetails.value
   });
 }
