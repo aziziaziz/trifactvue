@@ -29,7 +29,7 @@ import { ref, onMounted } from 'vue';
 import { roundNumber } from '../../js/helper';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { get } from '../../js/apiCall';
+import { get, put } from '../../js/apiCall';
 
 const store = useStore();
 const router = useRouter();
@@ -48,6 +48,12 @@ const isLoading = ref(false); // Used when loading the space requirements from t
 
 //#region Methods
 const addNewSpaceClicked = () => { // When adding a new details to the space
+  // Checkinng if the newly selected space is null
+  if (!newlySelectedSpace.value) {
+    // Will add an error message later
+    return;
+  }
+
   // Adding the newly added space into the current spacedetails
   currentSpaceDetails.value.push({
     "client_uid": store.state.currentClient.client_uid,
@@ -76,18 +82,47 @@ const getRemainingSpace = () => {
   remainingSpace.value = allSpaceDetails.value.filter(s => !currentSpaceDetails.value.find(c => s.value == c.description));
 }
 const saveSpaceClicked = async () => {
-  console.log(originalSpaceDetails.value);
-  console.log(currentSpaceDetails.value);
-  // // Simulate saving
-  // savingSpace.value = true;
-  // await wait(1000);
-  // savingSpace.value = false;
+  // Getting the details of the spaces with the updated or inserted action
+  let spaceToPost = currentSpaceDetails.value.map(space => {
+    // Checking if the current exists in ori
+    let exists = originalSpaceDetails.value.find(ori => space.space_uid == ori.space_uid);
+    if (exists) { // If exists, need to compare all the values and update
+      if (JSON.stringify(space) != JSON.stringify(exists)) {// Comparing the space and ori if it is different
+        // Setting the action to U for update
+        let obj = JSON.parse(JSON.stringify(space));
+        obj.action = 'U'
+        return obj;
+      } else {
+        return null;
+      }
+    } else { // Insert a new value
+      // Setting the action to I for insert
+      let obj = JSON.parse(JSON.stringify(space));
+      obj.action = 'I'
+      return obj;
+    }
+  }).filter(p => p);
 
-  // // Update the store
-  // store.commit('updateLocation', {
-  //   location: store.state.currentClient.location,
-  //   description: currentSpaceDetails.value
-  // });
+  // Getting the details of the spaces that has been deleted
+  let deletedSpace = originalSpaceDetails.value.map(ori => {
+    // Finding the one in ori that is in the current
+    let deleted = currentSpaceDetails.value.find(space => space.space_uid == ori.space_uid);
+    if (!deleted) { // If does not exists set the action to D
+      let obj = JSON.parse(JSON.stringify(ori));
+      obj.action = 'D'
+      return obj;
+    } else { // If exists, do nothing
+      return null;
+    }
+  }).filter(d => d);
+  
+  // Adding the deleted space into the obj
+  spaceToPost.push(...deletedSpace);
+
+  // Posting to update/insert/delete the space requirement
+  savingSpace.value = true;
+  await put(`Space/UpdateSpaceRequirements?username=${localStorage.getItem('user')}`, spaceToPost);
+  savingSpace.value = false;
 }
 //#endregion Methods
 
