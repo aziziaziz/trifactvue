@@ -13,3 +13,8 @@ export const post = async (endpoint, data) => {
   let result = await api.post(endpoint, data);
   return result.data;
 }
+
+export const put = async (endpoint, data) => {
+  let result = await api.put(endpoint, data);
+  return result.data;
+}
