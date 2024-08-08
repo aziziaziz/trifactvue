@@ -1,6 +1,6 @@
 <template>
   <div class="home-container">
-    <Button theme="submit" class="add-space-button" @click="addLocationClicked">Add Location</Button>
+    <Button theme="submit" class="add-space-button" @click="addLocationClicked" :disabled="store.state.spaceListing.length == 0">Add Location</Button>
     <Input placeholder="Search Location" />
     <div v-if="allLocations.length > 0" class="space-container">
       <div class="space-details" v-for="(loc, locInd) in allLocations" :key="locInd" @click="locationDetailsClicked(locInd)">
