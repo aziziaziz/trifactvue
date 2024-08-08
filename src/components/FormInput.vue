@@ -1,7 +1,8 @@
 <template>
 	<div class="input-main">
-		<div class="input-label">{{ props.placeholder }}</div>
+		<div class="input-label">{{ props.placeholder }} <span v-if="value" class="error-text">**</span></div>
 		<input class="input-box" type="text" v-model="inputValue" @input="userInput">
+		<!-- <div>Error message here</div> -->
 	</div>
 </template>
 
@@ -11,6 +12,7 @@ import { defineProps, ref, defineEmits, onMounted, watch } from 'vue';
 const props = defineProps({
 	placeholder: { type: String, default: 'Label' }, // Use the name the label/placeholder
 	value: String, // Use for the value and it is binding to inputValue
+	isRequired: Boolean, // Used to indicate that this input is required
 });
 const emit = defineEmits([
 	'update:value'
