@@ -1,24 +1,24 @@
 <template>
   <div class="home-container">
-    <Button theme="submit" class="add-space-button" @click="addLocationClicked" :disabled="store.state.spaceListing.length == 0">Add Location</Button>
-    <Input placeholder="Search Location" />
-    <div v-if="allLocations.length > 0" class="space-container">
-      <div class="space-details" v-for="(loc, locInd) in allLocations" :key="locInd" @click="locationDetailsClicked(locInd)">
-        <div class="space-title">{{ store.state.currentLocation ? (store.state.currentLocation.client_name == loc.client_name ? '✓' : '') : '' }} {{ loc.client_name }}</div>
+    <Button theme="submit" class="add-space-button" @click="addClientClicked" :disabled="store.state.spaceListing.length == 0">Add Client</Button>
+    <Input placeholder="Search Client" />
+    <div v-if="allClients.length > 0" class="space-container">
+      <div class="space-details" v-for="(loc, locInd) in allClients" :key="locInd" @click="clientDetailsClicked(locInd)">
+        <div class="space-title">{{ store.state.currentClient ? (store.state.currentClient.client_name == loc.client_name ? '✓' : '') : '' }} {{ loc.client_name }}</div>
       </div>
     </div>
-    <div v-else-if="locationLoading">Loading Locations</div>
+    <div v-else-if="clientLoading">Loading Clients</div>
 
 
-    <Popup :show="showAddLocationPopup">
-      <template v-slot:header>Add Location</template>
+    <Popup :show="showAddClientPopup">
+      <template v-slot:header>Add Client</template>
       <template v-slot:content>
-        <FormInput placeholder="Location name" v-model:value="locationName" />
+        <FormInput placeholder="Client name" v-model:value="clientName" />
         <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
       </template>
       <template v-slot:footer>
-        <Button theme="submit" @click="saveLocationClicked" :loading="savingLocation">Save</Button>
-        <Button theme="danger" @click="showAddLocationPopup = false">Cancel</Button>
+        <Button theme="submit" @click="saveClientClicked" :loading="savingClient">Save</Button>
+        <Button theme="danger" @click="showAddClientPopup = false">Cancel</Button>
       </template>
     </Popup>
   </div>
@@ -32,59 +32,59 @@ import { get, post } from '../../js/apiCall';
 const store = useStore();
 
 //#region Data
-const allLocations = ref([]); // The spaces that are available for the user
-const locationLoading = ref(false); // Used to show the loading when loading the location from DB
-const showAddLocationPopup = ref(false); // Use to show the popup to add location
-const locationName = ref(''); // Used when adding a new location
-const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new location, default to sqft
+const allClients = ref([]); // The spaces that are available for the user
+const clientLoading = ref(false); // Used to show the loading when loading the client from DB
+const showAddClientPopup = ref(false); // Use to show the popup to add client
+const clientName = ref(''); // Used when adding a new client
+const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
 const unitList = ref([]); // The list of availale units
-const savingLocation = ref(false); // To show loading when saving the location
+const savingClient = ref(false); // To show loading when saving the client
 //#endregion Data
 
 //#region Methods
-const locationDetailsClicked = (ind) => {
-  // Get the location based on the index
-  let location = allLocations.value[ind];
-  // Assign the location to the store
-  store.state.currentLocation = location;
+const clientDetailsClicked = (ind) => {
+  // Get the client based on the index
+  let client = allClients.value[ind];
+  // Assign the client to the store
+  store.state.currentClient = client;
 }
-const addLocationClicked = () => { // When adding a new location
+const addClientClicked = () => { // When adding a new client
   // Reset the values to default
-  locationName.value = '';
+  clientName.value = '';
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
 
   // To show the popup
-  showAddLocationPopup.value = true;
+  showAddClientPopup.value = true;
 }
-const saveLocationClicked = async () => { // When a new location is saved
+const saveClientClicked = async () => { // When a new client is saved
   // Saving to DB
   let saveObj = {
-    client_name: locationName.value,
+    client_name: clientName.value,
     sqm_sqft: selectedUnit.value.acronym
   };
-  savingLocation.value = true;
+  savingClient.value = true;
   let saveClient = await post('Client/InsertClient', saveObj);
-  savingLocation.value = false;
+  savingClient.value = false;
 
   if (saveClient) { // If saving the client success
     // Close the popup
-    showAddLocationPopup.value = false;
+    showAddClientPopup.value = false;
   
-    // Gett all locations from the DB
-    getAllLocations();
+    // Gett all clients from the DB
+    getAllClients();
   } else { // If saving the client failed
     console.error('Failed to save the client');
   }
 
 }
-const getAllLocations = async () => {
-  // Empty the locations first
-  allLocations.value = [];
+const getAllClients = async () => {
+  // Empty the clients first
+  allClients.value = [];
 
   // Getting all the clients from the DB
-  locationLoading.value = true;
-  allLocations.value = await get('Client/GetAllClient');
-  locationLoading.value = false;
+  clientLoading.value = true;
+  allClients.value = await get('Client/GetAllClient');
+  clientLoading.value = false;
 }
 //#endregion Methods
 
@@ -92,8 +92,8 @@ const getAllLocations = async () => {
 onMounted(async () => {
   unitList.value = store.state.unitListing;
 
-  // Getting the locations from the DB
-  getAllLocations();
+  // Getting the clients from the DB
+  getAllClients();
 });
 //#endregion Lifecycle
 </script>
