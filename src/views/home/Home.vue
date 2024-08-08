@@ -13,12 +13,16 @@
     <Popup :show="showAddClientPopup">
       <template v-slot:header>Add Client</template>
       <template v-slot:content>
-        <FormInput placeholder="Client name" v-model:value="clientName" />
-        <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
+        <div class="popup-content-container">
+          <FormInput placeholder="Client name" v-model:value="clientName" />
+          <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
+        </div>
       </template>
       <template v-slot:footer>
-        <Button theme="submit" @click="saveClientClicked" :loading="savingClient">Save</Button>
-        <Button theme="danger" @click="showAddClientPopup = false">Cancel</Button>
+        <div class="popup-button-section">
+          <Button theme="submit" @click="saveClientClicked" :loading="savingClient">Save</Button>
+          <Button theme="danger" @click="showAddClientPopup = false">Cancel</Button>
+        </div>
       </template>
     </Popup>
   </div>
@@ -136,5 +140,18 @@ onMounted(async () => {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+}
+.popup-content-container > :not(:first-child) {
+  margin-top: 5px;
+}
+.popup-button-section {
+  display: flex;
+  column-gap: 5px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.popup-button-section > Button {
+  max-width: 150px;
 }
 </style>
