@@ -85,7 +85,6 @@ const saveClientClicked = async () => { // When a new client is saved
 
     // Reformat to the value to post for the body
     let spaceToAdd = defaultSpace.map(s => ({
-      username: localStorage.getItem('user'),
       client_uid: Number(saveClient.insertedPK),
       space_uid: Number(s.space_uid),
       sqm_sqft: selectedUnit.value.acronym,
@@ -98,7 +97,7 @@ const saveClientClicked = async () => { // When a new client is saved
     }));
     
     // Saving the space requirements
-    await post(`Space/InsertSpaceRequirements`, spaceToAdd);
+    await post(`Space/InsertSpaceRequirements?username=${localStorage.getItem('user')}`, spaceToAdd);
     savingClient.value = false;
     
     // Close the popup
