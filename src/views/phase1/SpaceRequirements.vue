@@ -1,19 +1,20 @@
 <template>
   <div class="space-main">
-    <Button class="save-space-button" theme="submit" @click="saveSpaceClicked" :loading="savingSpace">Save Space</Button>
-    <div class="new-space-container">
+    <Button v-if="!isLoading" class="save-space-button" theme="submit" @click="saveSpaceClicked" :loading="savingSpace">Save Space</Button>
+    <div v-if="isLoading">Loading</div>
+    <div v-else class="new-space-container">
       <Dropdown placeholder="Space unit" :items="unitListing" v-model:selected="selectedUnit" />
       <div>Contains of {{ currentSpaceDetails.length }} space{{ currentSpaceDetails.length > 1 ? 's' : '' }}</div>
       <div class="space-details-container" v-for="(space,spaceInd) in currentSpaceDetails" :key="spaceInd">
         <div class="space-description">
-          <div>{{ space.name.value }}</div>
+          <div>{{ space.description }}</div>
           <img @click="deleteSpaceDescription(spaceInd)" src="../../assets/delete.png" alt="">
         </div>
         <div class="space-count">
-          <FormInput placeholder="Space Count" v-model:value="space.count" />
-          <FormInput placeholder="Space Total Area" v-model:value="space.totalSpace" />
+          <FormInput placeholder="Space Count" v-model:value="space.space_count" />
+          <FormInput placeholder="Space Total Area" v-model:value="space.total_area" />
         </div>
-        <div>{{ isNaN(Number(space.totalSpace) / Number(space.count)) ? 0 : roundNumber(Number(space.totalSpace) / Number(space.count), 2) }} {{ selectedUnit.acronym }} per {{ space.name.value }}</div>
+        <div>{{ isNaN(Number(space.total_area) / Number(space.space_count)) ? 0 : roundNumber(Number(space.total_area) / Number(space.space_count), 2) }} {{ selectedUnit.acronym }} per {{ space.description }}</div>
       </div>
       <div v-if="remainingSpace.length > 0" class="space-details-container">
         <Dropdown placeholder="Space Decription" :items="remainingSpace" v-model:selected="newlySelectedSpace" :position="currentSpaceDetails.length > 1 ? 'top' : 'bottom'" />
@@ -28,47 +29,20 @@ import { ref, onMounted } from 'vue';
 import { roundNumber, wait } from '../../js/helper';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { get } from '../../js/apiCall';
 
 const store = useStore();
 const router = useRouter();
 
 //#region Data
-const allSpaceDetails = ref([ // Use as a constant for all the available space details
-  { value: 'Open Workstation' },
-  { value: 'Enclose Manager Office' },
-  { value: 'Phone Booth' },
-  { value: 'Interview Room' },
-  { value: 'Small Meeting Room' },
-  { value: 'Medium Meeting Room' },
-  { value: 'Large Meeting Room' },
-  { value: 'Conference Room' },
-  { value: 'Townhall' },
-  { value: 'Pantry' },
-  { value: 'Canteen' },
-  { value: 'Collaboration Area' },
-  { value: 'Storage Room' },
-  { value: 'IT Room' },
-  { value: 'Reception Lobby' },
-  { value: 'Recreation Area' },
-  { value: 'Staff Welfare' },
-  { value: 'R&D Lab' },
-  { value: 'Theatre' },
-]);
+const allSpaceDetails = ref([]); // All available space details
 const remainingSpace = ref([]); // The remaining space that the user can choose to add
-const currentSpaceDetails = ref([ // The current selected space with the details
-  { name: { value: 'Open Workstation' }, count: '', totalSpace: '' },
-  { name: { value: 'Enclose Manager Office' }, count: '', totalSpace: '' },
-  { name: { value: 'Small Meeting Room' }, count: '', totalSpace: '' },
-  { name: { value: 'Medium Meeting Room' }, count: '', totalSpace: '' },
-  { name: { value: 'Large Meeting Room' }, count: '', totalSpace: '' },
-]);
-const unitListing = ref([ // The value use to show in the dropdown for the available unit
-  { value: 'Square Meter (sqm)', acronym: 'sqm' },
-  { value: 'Square Feet (sqft)', acronym: 'sqft' },
-]);
+const currentSpaceDetails = ref([]); // The current selected space with the details
+const unitListing = ref([]); // The value use to show in the dropdown for the available unit
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The default value of the unit
 const newlySelectedSpace = ref(null); // The new space description to be added
 const savingSpace = ref(false); // Loading when saving the space
+const isLoading = ref(false); // Used when loading the space requirements from the DB
 //#endregion Data
 
 //#region Methods
@@ -86,7 +60,7 @@ const deleteSpaceDescription = (ind) => {
   getRemainingSpace();
 }
 const getRemainingSpace = () => {
-  remainingSpace.value = allSpaceDetails.value.filter(s => !currentSpaceDetails.value.find(c => s.value == c.name.value));
+  remainingSpace.value = allSpaceDetails.value.filter(s => !currentSpaceDetails.value.find(c => s.value == c.description));
 }
 const saveSpaceClicked = async () => {
   // Simulate saving
@@ -103,9 +77,20 @@ const saveSpaceClicked = async () => {
 //#endregion Methods
 
 //#region Lifecycle
+onMounted(async () => {
+  // Getting the space details and unitlisting from the store
+  allSpaceDetails.value = store.state.spaceListing;
+  unitListing.value = store.state.unitListing;
+
+  // Populating value so that it will be available in the dropdown
+  allSpaceDetails.value.forEach(s => s.value = s.space_description);
+
   if (store.state.currentClient) {
-    currentSpaceDetails.value = store.state.currentClient.description;
-    selectedUnit.value = unitListing.value.find(u => u.acronym == store.state.currentClient.unit);
+    // Loading the client space requirements from the DB
+    currentSpaceDetails.value = await get(`Space/SpaceRequirements?client_uid=${store.state.currentClient.client_uid}`);
+    isLoading.value = false;
+
+    selectedUnit.value = unitListing.value.find(u => u.acronym == store.state.currentClient.sqm_sqft);
 
     getRemainingSpace();
   } else {
