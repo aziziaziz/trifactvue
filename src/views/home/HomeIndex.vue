@@ -53,6 +53,7 @@ import { ref, onBeforeMount, onMounted } from 'vue'
 import { useRouter } from 'vue-router';
 import { dateFormat } from '../../js/helper';
 import { useStore } from 'vuex';
+import { get } from '../../js/apiCall';
 
 const router = useRouter();
 const store = useStore();
@@ -121,6 +122,9 @@ onMounted(() => {
   router.afterEach((to) => {
     displayLabel.value = to.meta.displayName || 'Current Location';
   });
+
+  // Getting all the space from DB and set to the store for global usage
+  get('Space/AllSpace').then(d => store.state.spaceListing = d);
 })
 //#endregion Lifecycle
 </script>
