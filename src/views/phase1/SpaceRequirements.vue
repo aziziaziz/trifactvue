@@ -103,10 +103,9 @@ const saveSpaceClicked = async () => {
 //#endregion Methods
 
 //#region Lifecycle
-onMounted(() => {
-  if (store.state.currentLocation) {
-    currentSpaceDetails.value = store.state.currentLocation.description;
-    selectedUnit.value = unitListing.value.find(u => u.acronym == store.state.currentLocation.unit);
+  if (store.state.currentClient) {
+    currentSpaceDetails.value = store.state.currentClient.description;
+    selectedUnit.value = unitListing.value.find(u => u.acronym == store.state.currentClient.unit);
 
     getRemainingSpace();
   } else {
