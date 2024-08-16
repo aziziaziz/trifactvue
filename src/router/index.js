@@ -29,6 +29,12 @@ const routes = [
         name: 'Office Customization [Phase 1]',
         meta: { displayName: 'Office Customization' },
         component: () => import('../views/phase1/OfficeCustomization.vue')
+      },
+      {
+        path: 'ProjectMilestone',
+        name: 'Project Milestone [Phase 1]',
+        meta: { displayName: 'Project Milestone' },
+        component: () => import('../views/phase1/ProjectMilestone.vue')
       }
     ]
   }

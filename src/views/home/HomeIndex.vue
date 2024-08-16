@@ -70,7 +70,8 @@ const menu = ref([ // The list of menu to be shown
       { menu: 'Office Customization', icon: 'officecustom.png', path: 'OfficeCustom' },
       { menu: 'Retail Customization', icon: 'retailcustom.png' },
       { menu: 'Budget', icon: 'budget.png' },
-      { menu: 'Cost Breakdown', icon: 'cost.png' }
+      { menu: 'Cost Breakdown', icon: 'cost.png' },
+      { menu: 'Project Milestone', icon: 'projectmilestone.png', path: 'ProjectMilestone' }
     ]
   }
 ])
