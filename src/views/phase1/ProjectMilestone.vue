@@ -1,19 +1,20 @@
 <template>
-  <input v-model="inputTotalSize" /><br>
+  <!-- <input v-model="inputTotalSize" /><br> -->
+  <FormInput :placeholder="`Size (${clientUnit})`" />
   <button @click="loadingDetails">Calculate</button><br><br>
   <div v-if="isLoading">Loading</div>
   <table v-if="!isLoading && milestones.length > 0">
     <tr>
       <th>Description</th>
-      <th>Expected Days</th>
       <th>Optimal Days</th>
       <th>Minimum Days</th>
+      <th>Expected Days</th>
     </tr>
     <tr v-for="(m,mInd) in milestones" :key="mInd">
       <td>{{ m.desc }}</td>
-      <td><input class="expected-input" v-model="m.expected" /></td>
       <td>{{ m.optimal }}</td>
       <td>{{ m.minimum }}</td>
+      <td><input class="expected-input" v-model="m.expected" /></td>
     </tr>
   </table>
 </template>
@@ -30,6 +31,7 @@ const store = useStore();
 const inputTotalSize = ref('');
 const isLoading = ref(false);
 const milestones = ref([]);
+const clientUnit = ref('');
 //EndRegion Data
 
 //Region Methods
@@ -60,6 +62,8 @@ const loadingDetails = () => {
 //#region Lifecycle
 onMounted(() => {
   if (store.state.currentClient) {
+    // Setting the clientUnit
+    clientUnit.value = store.state.currentClient.sqm_sqft;
     // Loading the client's project milestone from DB
   } else {
     router.push('/Home?choose');
