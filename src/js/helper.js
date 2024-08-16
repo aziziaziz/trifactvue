@@ -56,3 +56,44 @@ export const roundNumber = (num, decimal) => {
 export const wait = (time) => { // Time in milliseconds
   return new Promise(r => setTimeout(() => r(), time));
 }
+// To assign action when posting
+export const compareData = (oriObj, newObj, compareKey) => {
+  // Getting the details of the object with the updated or inserted action
+  let objToPost = newObj.value.map(newitem => {
+    // Checking if the current exists in ori
+    let exists = oriObj.value.find(ori => newitem[compareKey] == ori[compareKey]);
+    if (exists) { // If exists, need to compare all the values and update
+      if (JSON.stringify(newitem) != JSON.stringify(exists)) {// Comparing the new item and ori if it is different
+        // Setting the action to U for update
+        let obj = JSON.parse(JSON.stringify(newitem));
+        obj.action = 'U'
+        return obj;
+      } else {
+        return null;
+      }
+    } else { // Insert a new value
+      // Setting the action to I for insert
+      let obj = JSON.parse(JSON.stringify(newitem));
+      obj.action = 'I'
+      return obj;
+    }
+  }).filter(p => p);
+
+  // Getting the details of the spaces that has been deleted
+  let deletedObj = oriObj.value.map(ori => {
+    // Finding the one in ori that is in the current
+    let deleted = newObj.value.find(space => space[compareKey] == ori[compareKey]);
+    if (!deleted) { // If does not exists set the action to D
+      let obj = JSON.parse(JSON.stringify(ori));
+      obj.action = 'D'
+      return obj;
+    } else { // If exists, do nothing
+      return null;
+    }
+  }).filter(d => d);
+
+  // Adding the deleted obj into the return obj
+  objToPost.push(...deletedObj);
+
+  return objToPost;
+}
