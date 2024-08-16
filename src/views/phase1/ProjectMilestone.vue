@@ -1,22 +1,24 @@
 <template>
-  <!-- <input v-model="inputTotalSize" /><br> -->
-  <FormInput :placeholder="`Size (${clientUnit})`" />
-  <button @click="loadingDetails">Calculate</button><br><br>
-  <div v-if="isLoading">Loading</div>
-  <table v-if="!isLoading && milestones.length > 0">
-    <tr>
-      <th>Description</th>
-      <th>Optimal Days</th>
-      <th>Minimum Days</th>
-      <th>Expected Days</th>
-    </tr>
-    <tr v-for="(m,mInd) in milestones" :key="mInd">
-      <td>{{ m.desc }}</td>
-      <td>{{ m.optimal }}</td>
-      <td>{{ m.minimum }}</td>
-      <td><input class="expected-input" v-model="m.expected" /></td>
-    </tr>
-  </table>
+  <div class="milestone-main">
+    <FormInput :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
+    <Button theme="submit">Calculate Milestone</Button>
+    <div v-if="isLoading">Loading</div>
+    <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit">Save Milestone</Button>
+    <table v-if="!isLoading && milestones.length > 0">
+      <tr>
+        <th>Description</th>
+        <th>Optimal Days</th>
+        <th>Minimum Days</th>
+        <th>Expected Days</th>
+      </tr>
+      <tr v-for="(m,mInd) in milestones" :key="mInd">
+        <td>{{ m.desc }}</td>
+        <td>{{ m.optimal }}</td>
+        <td>{{ m.minimum }}</td>
+        <td><input class="expected-input" v-model="m.expected" /></td>
+      </tr>
+    </table>
+  </div>
 </template>
 
 <script setup>
@@ -73,6 +75,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.milestone-main {
+  display: flex;
+  flex-direction: column;
+}
+.milestone-main > *:not(:first-child) {
+  margin-top: 5px;
+}
+.save-milestone-button {
+  width: fit-content;
+  align-self: flex-end;
+}
 table {
   border-collapse: collapse;
 }
