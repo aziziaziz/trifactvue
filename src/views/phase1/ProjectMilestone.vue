@@ -19,7 +19,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+
+const router = useRouter();
+const store = useStore();
 
 //Region Data
 const inputTotalSize = ref('');
@@ -51,6 +56,16 @@ const loadingDetails = () => {
   }
 }
 //EndRegion Methods
+
+//#region Lifecycle
+onMounted(() => {
+  if (store.state.currentClient) {
+    // Loading the client's project milestone from DB
+  } else {
+    router.push('/Home?choose');
+  }
+});
+//#endregion Lifecycle
 </script>
 
 <style scoped>
