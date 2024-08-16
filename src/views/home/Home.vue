@@ -85,7 +85,7 @@ const saveClientClicked = async () => { // When a new client is saved
 
     // Reformat to the value to post for the body
     let spaceToAdd = defaultSpace.map(s => ({
-      client_uid: Number(saveClient.insertedPK),
+      client_uid: Number(saveClient.objectID),
       space_uid: Number(s.space_uid),
       sqm_sqft: selectedUnit.value.acronym,
       description: s.space_description,
