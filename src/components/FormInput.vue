@@ -1,7 +1,8 @@
 <template>
 	<div class="input-main">
 		<div class="input-label">{{ props.placeholder }} <span v-if="isRequired" class="error-text">**</span></div>
-		<input :class="[{ 'input-box-error': errorMessage }, 'input-box']" type="text" v-model="inputValue" @input="userInput">
+		<input :class="[{ 'input-box-error': errorMessage }, 'input-box']" type="text" v-model="inputValue" @input="userInput"
+			@keydown="inputKeyDown">
 		<div v-if="errorMessage" class="error-text">{{ errorMessage }}</div>
 	</div>
 </template>
@@ -18,6 +19,7 @@ const props = defineProps({
 const emit = defineEmits([
 	'update:value',
 	'update:errorMessage',
+	'enter'
 ])
 
 //#region Data
@@ -30,6 +32,11 @@ const userInput = () => {
 	emit('update:errorMessage', '');
 	// Updating the value back to the parent component
 	emit('update:value', inputValue.value);
+}
+const inputKeyDown = (e) => {
+  if (e.key == 'Enter') {
+    emit('enter');
+  }
 }
 //#endregion Method
 
