@@ -1,7 +1,7 @@
 <template>
   <div class="milestone-main">
     <FormInput :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
-    <Button theme="submit">Calculate Milestone</Button>
+    <Button theme="submit" @click="loadingDetails">Calculate Milestone</Button>
     <div v-if="isLoading">Loading</div>
     <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit">Save Milestone</Button>
     <table v-if="!isLoading && milestones.length > 0">
@@ -12,10 +12,10 @@
         <th>Expected Days</th>
       </tr>
       <tr v-for="(m,mInd) in milestones" :key="mInd">
-        <td>{{ m.desc }}</td>
-        <td>{{ m.optimal }}</td>
-        <td>{{ m.minimum }}</td>
-        <td><input class="expected-input" v-model="m.expected" /></td>
+        <td>{{ m.area_description }}</td>
+        <td>{{ m.suggested_days }}</td>
+        <td>{{ m.min_days }}</td>
+        <td><input class="expected-input" v-model="m.suggested_days" /></td>
       </tr>
     </table>
   </div>
@@ -25,6 +25,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
+import { get } from '../../js/apiCall';
 
 const router = useRouter();
 const store = useStore();
@@ -37,36 +38,28 @@ const clientUnit = ref('');
 //EndRegion Data
 
 //Region Methods
-const loadingDetails = () => {
+const loadingDetails = async () => {
   if (inputTotalSize.value) {
+    // Clear the milestone and set is loading
     milestones.value = [];
     isLoading.value = true;
 
-    setTimeout(() => {
-      milestones.value = [
-        { desc: 'Site visit and gather details', optimal: 5, minimum: 2, expected: 2 },
-        { desc: 'Buying materials', optimal: 7, minimum: 4, expected: 4 },
-        { desc: 'Deliver materials', optimal: 3, minimum: 1, expected: 1 },
-        { desc: 'Demolishing current building', optimal: 4, minimum: 2, expected: 2 },
-        { desc: 'Building new walls', optimal: 15, minimum: 10, expected: 10 },
-        { desc: 'Installation of water pipes', optimal: 8, minimum: 5, expected: 5 },
-        { desc: 'Installation of wiring', optimal: 7, minimum: 4, expected: 4 },
-        { desc: 'Installation of tiles', optimal: 12, minimum: 7, expected: 7 },
-        { desc: 'Painting', optimal: 6, minimum: 4, expected: 4 },
-        { desc: 'Cleaning up', optimal: 5, minimum: 2, expected: 2 },
-      ];
-      isLoading.value = false
-    }, 2000);
+    // Calculate the milestone from DB
+    milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesAreaBySize?size=${inputTotalSize.value}`);
+
+    // Hide the loading
+    isLoading.value = false;
   }
 }
 //EndRegion Methods
 
 //#region Lifecycle
-onMounted(() => {
+onMounted(async () => {
   if (store.state.currentClient) {
     // Setting the clientUnit
     clientUnit.value = store.state.currentClient.sqm_sqft;
     // Loading the client's project milestone from DB
+    milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesByClientUid?client_uid=${store.state.currentClient.client_uid}`);
   } else {
     router.push('/Home?choose');
   }
