@@ -26,7 +26,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { roundNumber } from '../../js/helper';
+import { roundNumber, compareData } from '../../js/helper';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { get, put } from '../../js/apiCall';
@@ -82,42 +82,8 @@ const getRemainingSpace = () => {
   remainingSpace.value = allSpaceDetails.value.filter(s => !currentSpaceDetails.value.find(c => s.value == c.description));
 }
 const saveSpaceClicked = async () => {
-  // Getting the details of the spaces with the updated or inserted action
-  let spaceToPost = currentSpaceDetails.value.map(space => {
-    // Checking if the current exists in ori
-    let exists = originalSpaceDetails.value.find(ori => space.space_uid == ori.space_uid);
-    if (exists) { // If exists, need to compare all the values and update
-      if (JSON.stringify(space) != JSON.stringify(exists)) {// Comparing the space and ori if it is different
-        // Setting the action to U for update
-        let obj = JSON.parse(JSON.stringify(space));
-        obj.action = 'U'
-        return obj;
-      } else {
-        return null;
-      }
-    } else { // Insert a new value
-      // Setting the action to I for insert
-      let obj = JSON.parse(JSON.stringify(space));
-      obj.action = 'I'
-      return obj;
-    }
-  }).filter(p => p);
-
-  // Getting the details of the spaces that has been deleted
-  let deletedSpace = originalSpaceDetails.value.map(ori => {
-    // Finding the one in ori that is in the current
-    let deleted = currentSpaceDetails.value.find(space => space.space_uid == ori.space_uid);
-    if (!deleted) { // If does not exists set the action to D
-      let obj = JSON.parse(JSON.stringify(ori));
-      obj.action = 'D'
-      return obj;
-    } else { // If exists, do nothing
-      return null;
-    }
-  }).filter(d => d);
-  
-  // Adding the deleted space into the obj
-  spaceToPost.push(...deletedSpace);
+  // Used the helper to compare the data and post with proper action
+  let spaceToPost = compareData(originalSpaceDetails, currentSpaceDetails, 'space_uid');
 
   // Posting to update/insert/delete the space requirement
   savingSpace.value = true;
