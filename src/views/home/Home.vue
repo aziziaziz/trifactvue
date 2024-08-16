@@ -4,7 +4,7 @@
     <Input placeholder="Search Client" />
     <div v-if="allClients.length > 0" class="space-container">
       <div class="space-details" v-for="(loc, locInd) in allClients" :key="locInd" @click="clientDetailsClicked(locInd)">
-        <div class="space-title">{{ store.state.currentClient ? (store.state.currentClient.client_name == loc.client_name ? '✓' : '') : '' }} {{ loc.client_name }}</div>
+        <div class="space-title">{{ store.state.currentClient ? (store.state.currentClient.client_uid == loc.client_uid ? '✓' : '') : '' }} {{ loc.client_name }}</div>
       </div>
     </div>
     <div v-else-if="clientLoading">Loading Clients</div>
