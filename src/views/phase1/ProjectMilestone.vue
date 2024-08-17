@@ -3,7 +3,8 @@
     <FormInput :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
     <Button theme="submit" @click="loadingDetails">Calculate Milestone</Button>
     <div v-if="isLoading">Loading</div>
-    <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit">Save Milestone</Button>
+    <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit" @click="saveMilestone"
+      :loading="isSaving">Save Milestone</Button>
     <table v-if="!isLoading && milestones.length > 0">
       <tr>
         <th>Description</th>
@@ -15,7 +16,7 @@
         <td>{{ m.area_description }}</td>
         <td>{{ m.suggested_days }}</td>
         <td>{{ m.min_days }}</td>
-        <td><input class="expected-input" v-model="m.suggested_days" /></td>
+        <td><input class="expected-input" v-model="m.user_input_days" /></td>
       </tr>
     </table>
   </div>
@@ -25,7 +26,8 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import { get } from '../../js/apiCall';
+import { get, put } from '../../js/apiCall';
+import { compareData } from '../../js/helper';
 
 const router = useRouter();
 const store = useStore();
@@ -33,6 +35,8 @@ const store = useStore();
 //Region Data
 const inputTotalSize = ref('');
 const isLoading = ref(false);
+const isSaving = ref(false);
+const originalMilestones = ref([]);
 const milestones = ref([]);
 const clientUnit = ref('');
 //EndRegion Data
@@ -46,10 +50,39 @@ const loadingDetails = async () => {
 
     // Calculate the milestone from DB
     milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesAreaBySize?size=${inputTotalSize.value}`);
+    // Mapping to add user input
+    milestones.value = milestones.value.map(m => {
+      let obj = JSON.parse(JSON.stringify(m));
+      obj.user_input_days = m.suggested_days;
+      return obj;
+    });
 
     // Hide the loading
     isLoading.value = false;
   }
+}
+const saveMilestone = async () => {
+  // Get the data to post via compare data
+  let milestoneToPost = compareData(originalMilestones, milestones, 'area_uid');
+
+  // Mapping the milestone to post with the proper value
+  milestoneToPost = milestoneToPost.map(m => {
+    return {
+      action: m.action,
+      client_uid: store.state.currentClient.client_uid,
+      area_uid: m.area_uid,
+      total_size: Number(inputTotalSize.value),
+      country_code: m.country_code,
+      user_input_days: Number(m.user_input_days),
+      min_days: m.min_days,
+      suggested_days: m.suggested_days
+    };
+  })
+
+  // Post the milestones to save in DB
+  isSaving.value = true;
+  await put(`ProjectMilestones/UpdateProjectMilestones?username=${localStorage.getItem('user')}`, milestoneToPost);
+  isSaving.value = false;
 }
 //EndRegion Methods
 
@@ -58,8 +91,12 @@ onMounted(async () => {
   if (store.state.currentClient) {
     // Setting the clientUnit
     clientUnit.value = store.state.currentClient.sqm_sqft;
+
     // Loading the client's project milestone from DB
+    isLoading.value = true;
     milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesByClientUid?client_uid=${store.state.currentClient.client_uid}`);
+    originalMilestones.value = JSON.parse(JSON.stringify(milestones.value));
+    isLoading.value = false;
   } else {
     router.push('/Home?choose');
   }
