@@ -16,6 +16,12 @@
       <Dropdown placeholder="Status" :items="statusListing" v-model:selected="selectedStatusFilter" />
     </div>
 
+    <div class="filter-text">
+      <div>Found total of {{ devItems.length }} items. ({{ devItems.filter(d => !d.completedDate).length }} Pending, {{ devItems.filter(d => d.completedDate).length }} Completed) {{ getFilter() }}</div>
+      <Button theme="submit" @click="saveItems" :loading="isSaving">Save</Button>
+    </div>
+
+    <div v-if="isLoading">Loading</div>
     <div :class="['dev-items', { 'dev-items-completed': dev.completedDate }]" v-for="(dev,devInd) in devItems" :key="devInd">
       <div class="dev-item-assigned">
         <div>{{ dev.assignedTo }}</div>
@@ -24,9 +30,9 @@
       <div class="description-section">
         <div>{{ dev.description }}</div>
         <label :for="`isCompleted${devInd}`">Completed</label>
-        <input :id="`isCompleted${devInd}`" type="checkbox" @change="markCompleted(devInd)">
+        <input :id="`isCompleted${devInd}`" type="checkbox" :checked="dev.completedDate != ''" @change="markCompleted(devInd)">
       </div>
-      <div class="completed-date">{{ dev.completedDate }}</div>
+      <div class="completed-date" v-if="dev.completedDate">{{ dateFormat(new Date(dev.completedDate), 'dd/MM/yyyy HH:mm:ss') }}</div>
     </div>
 
     <Popup :show="addItemPopup" fullscreen>
@@ -50,8 +56,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { get } from '../js/apiCall';
+import { onMounted, ref, watch } from 'vue';
+import { get, put } from '../js/apiCall';
 import { dateFormat } from '../js/helper';
 
 //#region Data
@@ -67,7 +73,9 @@ const selectedDev = ref(null); // Used for the selected developer
 const itemDescription = ref(''); // Used for the description to add for the developer
 const selectedAssignFilter = ref(null); // Used for the selected assigned to filter
 const statusListing = ref([{ value: 'Pending' }, { value: 'Completed' }]); // Use to show the list of available status
-const selectedStatusFilter =ref(null); // Used for the selected status of the filter
+const selectedStatusFilter = ref(null); // Used for the selected status of the filter
+const isSaving = ref(false); // To show the button loading when saving
+const isLoading = ref(false); // To show the loading text when loading the dev items from backend
 //#endregion Data
 
 //#region Methods
@@ -101,6 +109,9 @@ const clearFilterClicked = () => {
   // Clearing the selected for teh filter items
   selectedAssignFilter.value = null;
   selectedStatusFilter.value = null;
+
+  // Filter the items
+  filterItems();
 }
 const filterItems = () => {
   // Set the devitems to full first
@@ -139,33 +150,45 @@ const markCompleted = (ind) => {
     fullDevItems.value[index].completedDate = changeToComplete ? '' : currentDate;
   }
 }
+const getFilter = () => {
+  if (selectedAssignFilter.value && selectedStatusFilter.value) {
+    return `[Filter: ${selectedAssignFilter.value.value}, ${selectedStatusFilter.value.value}]`;
+  } else if (selectedAssignFilter.value) {
+    return `[Filter: ${selectedAssignFilter.value.value}]`;
+  } else if (selectedStatusFilter.value) {
+    return `[Filter: ${selectedStatusFilter.value.value}]`;
+  }
+}
+const saveItems = async () => {
+  // Save to backend
+  isSaving.value = true;
+  await put('SaveDevItems/SaveDevItems', fullDevItems.value);
+  isSaving.value = false;
+}
 //#endregion Methods
+
+//#region Watcher
+watch(selectedAssignFilter, (val) => {
+  // Only filter the items when the value is not null
+  if (val) {
+    filterItems();
+  }
+})
+watch(selectedStatusFilter, (val) => {
+  // Only filter the items when the value is not null
+  if (val) {
+    filterItems();
+  }
+})
+//#endregion Watcher
 
 //#region Lifecycle
 onMounted(async () => {
   // Getting the data of the pending items
+  isLoading.value = true;
   fullDevItems.value = await get('SaveDevItems/GetDevItems');
-  fullDevItems.value = [
-    {
-        "assignedTo": "Azizi",
-        "description": "asdasd",
-        "assignedDate": "2024-08-17T17:11:30.550Z",
-        "completedDate": ""
-    },
-    {
-        "assignedTo": "Samuel",
-        "description": "alksjd",
-        "assignedDate": "2024-08-17T17:11:51.696Z",
-        "completedDate": ""
-    },
-    {
-        "assignedTo": "Shern Wei",
-        "description": "ajksd",
-        "assignedDate": "2024-08-17T17:11:59.205Z",
-        "completedDate": ""
-    }
-];
   devItems.value = JSON.parse(JSON.stringify(fullDevItems.value));
+  isLoading.value = false;
 });
 //#endregion Lifecycle
 </script>
@@ -265,5 +288,15 @@ onMounted(async () => {
   width: 100%;
   padding-right: 10px;
   white-space: pre-wrap;
+}
+.filter-text {
+  display: flex;
+  align-items: center;
+}
+.filter-text > :first-child {
+  width: 100%;
+}
+.filter-text > :nth-child(2) {
+  width: fit-content;
 }
 </style>
