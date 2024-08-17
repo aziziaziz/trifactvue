@@ -21,7 +21,11 @@
         <div>{{ dev.assignedTo }}</div>
         <div>{{ dateFormat(new Date(dev.assignedDate), 'dd/MM/yyyy HH:mm:ss') }}</div>
       </div>
-      <div>{{ dev.description }}</div>
+      <div class="description-section">
+        <div>{{ dev.description }}</div>
+        <label :for="`isCompleted${devInd}`">Completed</label>
+        <input :id="`isCompleted${devInd}`" type="checkbox" @change="markCompleted(devInd)">
+      </div>
       <div class="completed-date">{{ dev.completedDate }}</div>
     </div>
 
@@ -121,12 +125,46 @@ const filterItems = () => {
   // Sorting based on the latest on top
   devItems.value = devItems.value.sort((a,b) => new Date(b.assignedDate).getTime() - new Date(a.assignedDate).getTime());
 }
+const markCompleted = (ind) => {
+  // Get the current date
+  let currentDate = new Date();
+  // Check if the completed date is null or not
+  let changeToComplete = devItems.value[ind].completedDate;
+  // Get the index in the full items
+  let index = fullDevItems.value.findIndex(f => JSON.stringify(f) == JSON.stringify(devItems.value[ind]));
+
+  // Set the completed date for dev items
+  devItems.value[ind].completedDate = changeToComplete ? '' : currentDate;
+  if (index >= 0) {
+    fullDevItems.value[index].completedDate = changeToComplete ? '' : currentDate;
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
   // Getting the data of the pending items
   fullDevItems.value = await get('SaveDevItems/GetDevItems');
+  fullDevItems.value = [
+    {
+        "assignedTo": "Azizi",
+        "description": "asdasd",
+        "assignedDate": "2024-08-17T17:11:30.550Z",
+        "completedDate": ""
+    },
+    {
+        "assignedTo": "Samuel",
+        "description": "alksjd",
+        "assignedDate": "2024-08-17T17:11:51.696Z",
+        "completedDate": ""
+    },
+    {
+        "assignedTo": "Shern Wei",
+        "description": "ajksd",
+        "assignedDate": "2024-08-17T17:11:59.205Z",
+        "completedDate": ""
+    }
+];
   devItems.value = JSON.parse(JSON.stringify(fullDevItems.value));
 });
 //#endregion Lifecycle
@@ -218,5 +256,14 @@ onMounted(async () => {
 }
 .clear-filter-img {
   cursor: pointer;
+}
+.description-section {
+  display: flex;
+  align-items: flex-start;
+}
+.description-section > :first-child {
+  width: 100%;
+  padding-right: 10px;
+  white-space: pre-wrap;
 }
 </style>
