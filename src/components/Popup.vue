@@ -1,6 +1,6 @@
 <template>
   <Transition name="popup-trans" :duration="300">
-    <div v-if="show" class="popup-main">
+    <div v-if="show" :class="['popup-main', { 'popup-main-full': fullscreen }]">
       <div class="popup-background"></div>
       <div class="popup-container">
         <div class="popup-header">
@@ -23,6 +23,7 @@ import { defineProps, watch } from 'vue';
 
 const props = defineProps({
   show: { type: Boolean, default: false }, // To show or hide the popup
+  fullscreen: { type: Boolean, default: false }, // To make sure that the popup fills the entire screen, must be false if in home route
 });
 </script>
 
@@ -40,6 +41,10 @@ const props = defineProps({
   width: 100vw;
   padding-left: 210px;
   padding-top: 60px;
+}
+.popup-main-full {
+  padding-left: 10px;
+  padding-top: 10px;
 }
 .popup-background {
   background-color: rgba(128, 128, 128, 0.5);
