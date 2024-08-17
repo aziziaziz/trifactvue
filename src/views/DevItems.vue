@@ -19,7 +19,7 @@
     <div :class="['dev-items', { 'dev-items-completed': dev.completedDate }]" v-for="(dev,devInd) in devItems" :key="devInd">
       <div class="dev-item-assigned">
         <div>{{ dev.assignedTo }}</div>
-        <div>{{ dev.assignedDate }}</div>
+        <div>{{ dateFormat(new Date(dev.assignedDate), 'dd/MM/yyyy HH:mm:ss') }}</div>
       </div>
       <div>{{ dev.description }}</div>
       <div class="completed-date">{{ dev.completedDate }}</div>
@@ -74,12 +74,15 @@ const addItemClicked = () => {
     fullDevItems.value.push({
       assignedTo: selectedDev.value.value,
       description: itemDescription.value,
-      assignedDate: dateFormat(new Date(), 'dd/MM/yyyy HH:mm:ss'),
+      assignedDate: new Date(),
       completedDate: ''
     });
 
     // Close the popup
     addItemPopup.value = false;
+
+    // Filter the items based on the filter
+    filterItems();
   }
 }
 const addNewItemClicked = () => {
@@ -94,6 +97,29 @@ const clearFilterClicked = () => {
   // Clearing the selected for teh filter items
   selectedAssignFilter.value = null;
   selectedStatusFilter.value = null;
+}
+const filterItems = () => {
+  // Set the devitems to full first
+  devItems.value = JSON.parse(JSON.stringify(fullDevItems.value));
+  // Filter based on the selected developer or status
+  if (selectedAssignFilter.value || selectedStatusFilter.value) {
+    // Check on which filter is not empty
+    if (selectedAssignFilter.value) {
+      devItems.value = devItems.value.filter(d => d.assignedTo == selectedAssignFilter.value.value);
+    }
+
+    if (selectedStatusFilter.value) {
+      // Filter based on pending ot completed
+      if (selectedStatusFilter.value.value == 'Pending') {
+        devItems.value = devItems.value.filter(d => !d.completedDate);
+      } else if (selectedStatusFilter.value.value == 'Completed') {
+        devItems.value = devItems.value.filter(d => d.completedDate);
+      }
+    }
+  }
+
+  // Sorting based on the latest on top
+  devItems.value = devItems.value.sort((a,b) => new Date(b.assignedDate).getTime() - new Date(a.assignedDate).getTime());
 }
 //#endregion Methods
 
