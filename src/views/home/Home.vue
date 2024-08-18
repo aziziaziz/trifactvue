@@ -2,13 +2,16 @@
   <div class="home-container">
     <Button theme="submit" class="add-space-button" @click="addClientClicked" :disabled="store.state.spaceListing.length == 0">Add Client</Button>
     <Input placeholder="Search Client" />
+    <div v-if="store.state.currentClient" class="space-details">
+      <div class="space-title">✓ {{ store.state.currentClient.client_name }}</div>
+    </div>
+    <hr style="width: 100%">
     <div v-if="allClients.length > 0" class="space-container">
       <div class="space-details" v-for="(loc, locInd) in allClients" :key="locInd" @click="clientDetailsClicked(locInd)">
-        <div class="space-title">{{ store.state.currentClient ? (store.state.currentClient.client_uid == loc.client_uid ? '✓' : '') : '' }} {{ loc.client_name }}</div>
+        <div class="space-title">{{ loc.client_name }}</div>
       </div>
     </div>
-    <div v-else-if="clientLoading">Loading Clients</div>
-
+    <Loader v-else-if="clientLoading" text="Loading Clients" />
 
     <Popup :show="showAddClientPopup">
       <template v-slot:header>Add Client</template>
@@ -47,12 +50,20 @@ const savingClient = ref(false); // To show loading when saving the client
 //#endregion Data
 
 //#region Methods
-const clientDetailsClicked = (ind) => {
+const clientDetailsClicked = async (ind) => {
+  // Check if currently client is selected and if it is, the need to add back into the client list
+  if (localStorage.getItem('client')) {
+    allClients.value.splice(ind, 0, JSON.parse(localStorage.getItem('client')));
+  }
+
   // Get the client based on the index
-  let client = allClients.value[ind];
+  let client = allClients.value[ind + 1];
   // Assign the client to the store and save in the localstorage
   store.state.currentClient = client;
   localStorage.setItem('client', JSON.stringify(client));
+
+  // Remove the client from the full list and make it show at the top
+  allClients.value.splice(ind + 1, 1);
 }
 const addClientClicked = () => { // When adding a new client
   // Reset the values to default
@@ -147,7 +158,6 @@ onMounted(async () => {
   flex-direction: column;
   max-height: 100%;
   overflow: auto;
-  margin-top: 10px;
 }
 .space-details {
   display: flex;
