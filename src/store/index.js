@@ -10,6 +10,7 @@ export default createStore({
     ]
   },
   mutations: {
+    showPopup () {} // Nothing in this mutation since it is acting as a global event handler only
   },
   actions: {
   },

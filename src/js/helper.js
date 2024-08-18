@@ -1,3 +1,5 @@
+import store from '../store/index';
+
 const dayShort = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ];
 const dayLong = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
 const monthShort = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
@@ -96,4 +98,12 @@ export const compareData = (oriObj, newObj, compareKey) => {
   objToPost.push(...deletedObj);
 
   return objToPost;
+}
+// To call the generic popup from the App
+export const popup = (header, content) => {
+  // Commit the show popup with header and content (Return a default value for the header and content if not passed)
+  store.commit('showPopup', {
+    header: header || 'Header not set',
+    content: content || 'Content not set'
+  });
 }
