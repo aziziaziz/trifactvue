@@ -50,8 +50,9 @@ const savingClient = ref(false); // To show loading when saving the client
 const clientDetailsClicked = (ind) => {
   // Get the client based on the index
   let client = allClients.value[ind];
-  // Assign the client to the store
+  // Assign the client to the store and save in the localstorage
   store.state.currentClient = client;
+  localStorage.setItem('client', JSON.stringify(client));
 }
 const addClientClicked = () => { // When adding a new client
   // Reset the values to default
