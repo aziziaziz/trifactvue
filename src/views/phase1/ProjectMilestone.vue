@@ -2,7 +2,7 @@
   <div class="milestone-main">
     <FormInput :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
     <Button theme="submit" @click="loadingDetails">Calculate Milestone</Button>
-    <div v-if="isLoading">Loading</div>
+    <Loader v-if="isLoading" text="Loading Project Milestone" />
     <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit" @click="saveMilestone"
       :loading="isSaving">Save Milestone</Button>
     <table v-if="!isLoading && milestones.length > 0">
@@ -19,6 +19,7 @@
         <td><input class="expected-input" v-model="m.user_input_days" /></td>
       </tr>
     </table>
+    <div v-if="!isLoading && milestones.length == 0" class="no-milestone-text">No milestones saved</div>
   </div>
 </template>
 
@@ -131,6 +132,10 @@ td:not(:first-child) {
   text-align: center;
 }
 .expected-input {
+  text-align: center;
+}
+.no-milestone-text {
+  font-weight: bold;
   text-align: center;
 }
 </style>
