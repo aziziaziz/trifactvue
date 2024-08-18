@@ -110,7 +110,7 @@ export const popup = (header, content) => {
   });
 }
 // To call the generic popup from the App
-export const question = (header, content) => {
+export const question = (header, content, yesText, noText, isDestructive) => {
   // Set the resolve obj to from the promise so that this method is awaitable
   let resolve = null;
   let prom = new Promise(r => resolve = r);
@@ -118,7 +118,10 @@ export const question = (header, content) => {
   // Commit the show popup with header and content (Return a default value for the header and content if not passed)
   store.commit('showAlertQuestion', {
     header: header || 'Header not set',
-    content: content || 'Content not set'
+    content: content || 'Content not set',
+    yesText: yesText || 'Yes',
+    noText: noText || 'No',
+    isDestructive: isDestructive == undefined || isDestructive == null ? false : true
   });
 
   // Unsubscribe if it is already subscribe

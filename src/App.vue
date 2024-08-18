@@ -7,8 +7,8 @@
     <template v-slot:footer>
       <div class="popup-footer">
         <Button v-if="!isQuestion" class="popup-button" @click="showAlert = false" theme="submit">OK</Button>
-        <Button v-if="isQuestion" class="popup-button" @click="answerButtonClicked('Yes')" theme="submit">Yes</Button>
-        <Button v-if="isQuestion" class="popup-button" @click="answerButtonClicked('No')" theme="submit">No</Button>
+        <Button v-if="isQuestion" class="popup-button" :theme="isDestructive ? 'danger' : 'submit'" @click="answerButtonClicked(yesText)">{{ yesText }}</Button>
+        <Button v-if="isQuestion" class="popup-button" :theme="!isDestructive ? 'danger' : 'submit'" @click="answerButtonClicked(noText)">{{ noText }}</Button>
       </div>
     </template>
   </Popup>
@@ -21,10 +21,13 @@ import { useStore } from 'vuex'
 const store = useStore();
 
 //#region Data
-const showAlert = ref(false);
-const popupHeader = ref('');
-const popupContent = ref('');
-const isQuestion = ref(false);
+const showAlert = ref(false); // Show/Hide the alert
+const popupHeader = ref(''); // The header/title of the popup
+const popupContent = ref(''); // The content of the popup
+const isQuestion = ref(false); // Setting if the popup is a question or just an alert
+const yesText = ref('Yes'); // The text to change on the yes button
+const noText = ref('No'); // The text to change on the no button
+const isDestructive = ref(false); // To set if the answer is destuctive (meaning that if like deleting something, this must be true)
 //#endregion Data
 
 //#region Methods
@@ -51,8 +54,11 @@ onMounted(() => {
 
       // Check if it is a question
       if (mutation.type == 'showAlertQuestion') {
-        // Set that the current alert is a question
+        // Set that the properties of the question alert
         isQuestion.value = true;
+        yesText.value = mutation.payload.yesText;
+        noText.value = mutation.payload.noText;
+        isDestructive.value = mutation.payload.isDestructive;
       }
 
       // Show the popup
