@@ -129,6 +129,17 @@ const getAllClients = async () => {
   clientLoading.value = true;
   allClients.value = await get('Client/GetAllClient');
   clientLoading.value = false;
+
+  // Checking if there is a client that is already selected
+  if (localStorage.getItem('client')) {
+    // Parse the client string from localstorage to object
+    let savedClient = JSON.parse(localStorage.getItem('client'));
+
+    // Get the index based on id
+    let ind = allClients.value.findIndex(c => c.client_uid == savedClient.client_uid);
+    // Remove from the main list
+    allClients.value.splice(ind, 1);
+  }
 }
 //#endregion Methods
 
