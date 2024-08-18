@@ -126,6 +126,13 @@ onMounted(() => {
 
   // Getting all the space from DB and set to the store for global usage
   get('Space/AllSpace').then(d => store.state.spaceListing = d);
+});
+onBeforeMount(() => {
+  // Getting the client if there is any before the page is mounted
+  if (localStorage.getItem('client')) {
+    store.state.currentClient = JSON.parse(localStorage.getItem('client'));
+  }
+
 })
 //#endregion Lifecycle
 </script>
