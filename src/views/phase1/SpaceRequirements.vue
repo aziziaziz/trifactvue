@@ -1,7 +1,7 @@
 <template>
   <div class="space-main">
     <Button v-if="!isLoading" class="save-space-button" theme="submit" @click="saveSpaceClicked" :loading="savingSpace">Save Space</Button>
-    <div v-if="isLoading">Loading</div>
+    <Loader v-if="isLoading" text="Loading Space Requirement" />
     <div v-else class="new-space-container">
       <Dropdown placeholder="Space unit" :items="unitListing" v-model:selected="selectedUnit" />
       <div>Contains of {{ currentSpaceDetails.length }} space{{ currentSpaceDetails.length > 1 ? 's' : '' }}</div>
