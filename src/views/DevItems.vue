@@ -187,7 +187,7 @@ onMounted(async () => {
   // Getting the data of the pending items
   isLoading.value = true;
   fullDevItems.value = await get('SaveDevItems/GetDevItems');
-  devItems.value = JSON.parse(JSON.stringify(fullDevItems.value));
+  filterItems();
   isLoading.value = false;
 });
 //#endregion Lifecycle
