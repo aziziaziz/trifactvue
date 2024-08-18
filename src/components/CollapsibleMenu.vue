@@ -16,6 +16,7 @@
 <script setup>
 import { defineProps, ref, onMounted, defineEmits } from 'vue';
 import { useRouter } from 'vue-router';
+import { popup } from '../js/helper';
 
 const router = useRouter();
 
@@ -124,7 +125,8 @@ const menuClicked = (menu) => {
   if (menu.path) {
     router.push(`/Home/${menu.path}`);
   } else {
-    alert('Oiiii! Think all pages done meh??!');
+    // Use the global popup instead of the normal alert
+    popup('Page Unavailable', `Sorry, but ${menu.menu} is not available yet.`);
   }
 }
 //#endregion Methods
