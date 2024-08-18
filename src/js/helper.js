@@ -5,6 +5,8 @@ const dayLong = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 const monthShort = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
 const monthLong = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];
 
+let questionSub = null; // Set the default question subscribe
+
 export const dateFormat = (date, format) => {
   let result = format;
 
@@ -106,4 +108,30 @@ export const popup = (header, content) => {
     header: header || 'Header not set',
     content: content || 'Content not set'
   });
+}
+// To call the generic popup from the App
+export const question = (header, content) => {
+  // Set the resolve obj to from the promise so that this method is awaitable
+  let resolve = null;
+  let prom = new Promise(r => resolve = r);
+
+  // Commit the show popup with header and content (Return a default value for the header and content if not passed)
+  store.commit('showAlertQuestion', {
+    header: header || 'Header not set',
+    content: content || 'Content not set'
+  });
+
+  // Unsubscribe if it is already subscribe
+  if (questionSub) {
+    questionSub();
+  }
+
+  // Subscribe when the button in the popup is clicked (either yes/no)
+  questionSub = store.subscribe((mutation) => {
+    if (mutation.type == 'questionAnswered') {
+      resolve(mutation.payload.answer);
+    }
+  });
+
+  return prom;
 }
