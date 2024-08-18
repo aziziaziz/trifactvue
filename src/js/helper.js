@@ -102,7 +102,7 @@ export const compareData = (oriObj, newObj, compareKey) => {
 // To call the generic popup from the App
 export const popup = (header, content) => {
   // Commit the show popup with header and content (Return a default value for the header and content if not passed)
-  store.commit('showPopup', {
+  store.commit('showAlert', {
     header: header || 'Header not set',
     content: content || 'Content not set'
   });

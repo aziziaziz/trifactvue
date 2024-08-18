@@ -1,12 +1,12 @@
 <template>
   <router-view />
 
-  <Popup :show="showPopup" align="center">
+  <Popup :show="showAlert" align="center">
     <template v-slot:header>{{ popupHeader }}</template>
     <template v-slot:content>{{ popupContent }}</template>
     <template v-slot:footer>
       <div class="popup-footer">
-        <Button class="popup-button" @click="showPopup = false" theme="submit">OK</Button>
+        <Button class="popup-button" @click="showAlert = false" theme="submit">OK</Button>
       </div>
     </template>
   </Popup>
@@ -19,7 +19,7 @@ import { useStore } from 'vuex'
 const store = useStore();
 
 //#region Data
-const showPopup = ref(false);
+const showAlert = ref(false);
 const popupHeader = ref('');
 const popupContent = ref('');
 //#endregion Data
@@ -28,14 +28,14 @@ const popupContent = ref('');
 onMounted(() => {
   // Subscribe when a commit is done on the store
   store.subscribe((mutation) => {
-    // Only show the popup when the mutation is showPopup
-    if (mutation.type == 'showPopup') {
+    // Only show the popup when the mutation is showAlert
+    if (mutation.type == 'showAlert') {
       // Set the header and the content
       popupHeader.value =  mutation.payload?.header;
       popupContent.value = mutation.payload?.content;
 
       // Show the popup
-      showPopup.value = true;
+      showAlert.value = true;
     }
   });
 });
