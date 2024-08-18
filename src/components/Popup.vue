@@ -6,7 +6,7 @@
         <div class="popup-header">
           <slot name="header">Header</slot>
         </div>
-        <div class="popup-content">
+        <div class="popup-content" :style="{ textAlign: align }">
           <slot name="content">Content</slot>
         </div>
         <div class="popup-footer">
@@ -24,6 +24,7 @@ import { defineProps, watch } from 'vue';
 const props = defineProps({
   show: { type: Boolean, default: false }, // To show or hide the popup
   fullscreen: { type: Boolean, default: false }, // To make sure that the popup fills the entire screen, must be false if in home route
+  align: { type: String, default: 'left' }, // To align the content of the popup. Possible [left, center, right]
 });
 </script>
 
@@ -80,6 +81,7 @@ const props = defineProps({
   height: 100%;
   overflow: auto;
   padding: 5px;
+  white-space: pre-wrap;
 }
 .popup-footer {
   width: 100%;
