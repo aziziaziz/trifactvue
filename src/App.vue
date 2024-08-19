@@ -1,6 +1,12 @@
 <template>
   <router-view />
 
+  <div class="noti-container">
+    <TransitionGroup name="notification">
+      <div v-for="(noti,notiInd) in notiListing" :key="notiInd" :class="['noti-item', `${noti.theme}-noti-theme`]">{{ noti.text }} - {{ notiInd }}</div>
+    </TransitionGroup>
+  </div>
+
   <Popup :show="showAlert" align="center">
     <template v-slot:header>{{ popupHeader }}</template>
     <template v-slot:content>{{ popupContent }}</template>
@@ -17,6 +23,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex'
+import { wait } from './js/helper';
 
 const store = useStore();
 
@@ -28,6 +35,13 @@ const isQuestion = ref(false); // Setting if the popup is a question or just an 
 const yesText = ref('Yes'); // The text to change on the yes button
 const noText = ref('No'); // The text to change on the no button
 const isDestructive = ref(false); // To set if the answer is destuctive (meaning that if like deleting something, this must be true)
+const notiListing = ref([
+  // { text: 'Alert 1' },
+  // { text: 'Alert 2' },
+  // { text: 'Alert 3' },
+  // { text: 'Alert 4' },
+]);
+const maxNoti = ref(3); // To allow max number of notification to show
 //#endregion Data
 
 //#region Methods
@@ -40,12 +54,26 @@ const answerButtonClicked = (answer) => {
   // Close the popup
   showAlert.value = false;
 }
+const insertNoti = (noti) => {
+  // Add the notification
+  notiListing.value.push(noti);
+  // Close the noti based on the expires
+  setTimeout(() => closeNoti(noti.id), noti.expires);
+}
+const closeNoti = (id) => {
+  // Find the index of the noti to close
+  let index = notiListing.value.findIndex(n => n.id == id);
+  // Only remove if the noti index is more than or equals to 9
+  if (index >= 0) {
+    notiListing.value.splice(index, 1);
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
 onMounted(() => {
   // Subscribe when a commit is done on the store
-  store.subscribe((mutation) => {
+  store.subscribe(async (mutation) => {
     // Only show the popup when the mutation is showAlert
     if (mutation.type == 'showAlert' || mutation.type == 'showAlertQuestion') {
       // Set the header and the content
@@ -63,6 +91,21 @@ onMounted(() => {
 
       // Show the popup
       showAlert.value = true;
+    }
+
+    // Listening mutation for notification
+    if (mutation.type == 'showNoti') {
+      // Allowing on max number of notification
+      if (notiListing.value.length >= maxNoti.value) {
+        notiListing.value.splice(0, 1);
+      }
+
+      await wait(10);
+      // Modify the payload
+      let notiObj = JSON.parse(JSON.stringify(mutation.payload));
+      notiObj.id = `noti${new Date().getTime()}`;
+      // Insert the notification
+      insertNoti(notiObj);
     }
   });
 });
@@ -94,5 +137,57 @@ body {
 }
 .popup-button {
   max-width: 300px;
+}
+.noti-container {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100vw;
+  left: 0;
+  bottom: 20px;
+  z-index: 12;
+  pointer-events: none;
+  row-gap: 5px;
+}
+.noti-item {
+  border: 1px solid gray;
+  border-radius: 10px;
+  background-color: white;
+  padding: 10px;
+  width: fit-content;
+  max-width: 90%;
+  text-align: center;
+  transition: 0.5s;
+  white-space: pre-wrap;
+}
+.notification-move,
+.notification-enter-active,
+.notification-leave-active {
+  transition: all 0.5s ease;
+}
+.notification-enter-from,
+.notification-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+.notification-leave-active {
+  position: absolute;
+}
+.default-noti-theme {
+  background-color: white;
+}
+.warning-noti-theme {
+  background-color: goldenrod;
+  border: 1px solid yellow;
+}
+.error-noti-theme {
+  background-color: indianred;
+  border: 1px solid red;
+  color: white;
+}
+.success-noti-theme {
+  background-color: limegreen;
+  border: 1px solid green
 }
 </style>

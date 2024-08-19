@@ -12,7 +12,8 @@ export default createStore({
   mutations: {
     showAlert () {}, // Nothing in this mutation since it is acting as a global event handler only
     showAlertQuestion () {}, // Nothing in this mutation since it is acting as a global even handler only
-    questionAnswered () {} // Nothing in this mutation since it is acting as a global even handler only
+    questionAnswered () {}, // Nothing in this mutation since it is acting as a global even handler only
+    showNoti () {} // Nothing in this mutation since it is acting as a global even handler only
   },
   actions: {
   },

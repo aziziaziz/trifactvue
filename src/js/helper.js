@@ -138,3 +138,12 @@ export const question = (header, content, yesText, noText, isDestructive) => {
 
   return prom;
 }
+// To show notification
+export const showNoti = (text, theme, expires) => {
+  // Commit the show notification mutation from store
+  store.commit('showNoti', {
+    text: text || 'Notification text not set',
+    expires: expires || 3000,
+    theme: theme || 'default'
+  });
+}
