@@ -190,6 +190,6 @@ body {
 .success-noti-theme {
   background-color: limegreen;
   border: 1px solid green;
-  white;
+  color: white;
 }
 </style>
