@@ -28,7 +28,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { get, put } from '../../js/apiCall';
-import { compareData, showNoti } from '../../js/helper';
+import { compareData, question, showNoti } from '../../js/helper';
 
 const router = useRouter();
 const store = useStore();
@@ -45,6 +45,16 @@ const clientUnit = ref('');
 //Region Methods
 const loadingDetails = async () => {
   if (inputTotalSize.value) {
+    // Show alert asking if user really wants to recalculate if the calculation is done beofre
+    if (milestones.value.length > 0) {
+      let recalc = await question('Re-Calculate', 'If you re-calculate, the previous input will be overwritten.\nAre you sure you want to re-calculate?', 'Re-Calculate', 'Cancel', true);
+
+      // Stop the process if user doesn't want to re-calculate
+      if (recalc == 'Cancel') {
+        return;
+      }
+    }
+
     // Clear the milestone and set is loading
     milestones.value = [];
     isLoading.value = true;
