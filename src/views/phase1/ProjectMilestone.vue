@@ -28,7 +28,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { get, put } from '../../js/apiCall';
-import { compareData } from '../../js/helper';
+import { compareData, showNoti } from '../../js/helper';
 
 const router = useRouter();
 const store = useStore();
@@ -60,6 +60,8 @@ const loadingDetails = async () => {
 
     // Hide the loading
     isLoading.value = false;
+  } else { // if the input total size is not entered
+    showNoti('Please enter the total size to calculate', 'error');
   }
 }
 const saveMilestone = async () => {
