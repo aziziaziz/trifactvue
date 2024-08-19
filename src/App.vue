@@ -3,7 +3,7 @@
 
   <div class="noti-container">
     <TransitionGroup name="notification">
-      <div v-for="(noti,notiInd) in notiListing" :key="notiInd" :class="['noti-item', `${noti.theme}-noti-theme`]">{{ noti.text }} - {{ notiInd }}</div>
+      <div v-for="(noti,notiInd) in notiListing" :key="notiInd" :class="['noti-item', `${noti.theme}-noti-theme`]">{{ noti.text }}</div>
     </TransitionGroup>
   </div>
 
@@ -180,6 +180,7 @@ body {
 .warning-noti-theme {
   background-color: goldenrod;
   border: 1px solid yellow;
+  color: white;
 }
 .error-noti-theme {
   background-color: indianred;
@@ -188,6 +189,7 @@ body {
 }
 .success-noti-theme {
   background-color: limegreen;
-  border: 1px solid green
+  border: 1px solid green;
+  white;
 }
 </style>
