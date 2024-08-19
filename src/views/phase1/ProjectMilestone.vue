@@ -100,6 +100,11 @@ onMounted(async () => {
     milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesByClientUid?client_uid=${store.state.currentClient.client_uid}`);
     originalMilestones.value = JSON.parse(JSON.stringify(milestones.value));
     isLoading.value = false;
+
+    // Check if the milestone had been saved before to get the total size
+    if (milestones.value.length > 0) {
+      inputTotalSize.value = milestones.value[0].total_size;
+    }
   } else {
     router.push('/Home?choose');
   }
