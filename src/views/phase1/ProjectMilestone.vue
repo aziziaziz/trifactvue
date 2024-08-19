@@ -1,8 +1,8 @@
 <template>
   <div class="milestone-main">
-    <FormInput :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
-    <Button theme="submit" @click="loadingDetails">Calculate Milestone</Button>
     <Loader v-if="isLoading" text="Loading Project Milestone" />
+    <FormInput v-if="!isLoading" :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
+    <Button v-if="!isLoading" theme="submit" @click="loadingDetails">Calculate Milestone</Button>
     <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit" @click="saveMilestone"
       :loading="isSaving">Save Milestone</Button>
     <table v-if="!isLoading && milestones.length > 0">
