@@ -72,7 +72,8 @@ const menu = ref([ // The list of menu to be shown
       { menu: 'Retail Customization', icon: 'retailcustom.png' },
       { menu: 'Budget', icon: 'budget.png' },
       { menu: 'Cost Breakdown', icon: 'cost.png' },
-      { menu: 'Project Milestone', icon: 'projectmilestone.png', path: 'ProjectMilestone' }
+      { menu: 'Project Milestone', icon: 'projectmilestone.png', path: 'ProjectMilestone' },
+      { menu: 'Building Selection', icon: 'buildingSelection.png', path: 'BuildingSelection' },
     ]
   }
 ])

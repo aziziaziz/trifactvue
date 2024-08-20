@@ -40,6 +40,12 @@ const routes = [
         name: 'Project Milestone [Phase 1]',
         meta: { displayName: 'Project Milestone' },
         component: () => import('../views/phase1/ProjectMilestone.vue')
+      },
+      {
+        path: 'BuildingSelection',
+        name: 'Building Selection [Phase 1]',
+        meta: { displayName: 'Building Selection' },
+        component: () => import('../views/phase1/BuildingSelection.vue')
       }
     ]
   }
