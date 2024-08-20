@@ -76,6 +76,12 @@ onMounted(() => {
   store.subscribe(async (mutation) => {
     // Only show the popup when the mutation is showAlert
     if (mutation.type == 'showAlert' || mutation.type == 'showAlertQuestion') {
+      // Reset the details
+      isQuestion.value = false;
+      yesText.value = 'Yes';
+      noText.value = 'No';
+      isDestructive.value = false;
+
       // Set the header and the content
       popupHeader.value =  mutation.payload?.header;
       popupContent.value = mutation.payload?.content;
