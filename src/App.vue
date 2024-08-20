@@ -1,13 +1,13 @@
 <template>
   <router-view />
 
-  <div class="noti-container">
+  <div class="global-noti-container">
     <TransitionGroup name="notification">
       <div v-for="(noti,notiInd) in notiListing" :key="notiInd" :class="['noti-item', `${noti.theme}-noti-theme`]">{{ noti.text }}</div>
     </TransitionGroup>
   </div>
 
-  <Popup :show="showAlert" align="center">
+  <Popup class="global-popup-container" :show="showAlert" align="center">
     <template v-slot:header>{{ popupHeader }}</template>
     <template v-slot:content>{{ popupContent }}</template>
     <template v-slot:footer>
@@ -144,7 +144,7 @@ body {
 .popup-button {
   max-width: 300px;
 }
-.noti-container {
+.global-noti-container {
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -152,9 +152,12 @@ body {
   width: 100vw;
   left: 0;
   bottom: 20px;
-  z-index: 12;
+  z-index: 1002;
   pointer-events: none;
   row-gap: 5px;
+}
+.global-popup-container {
+  z-index: 1001;
 }
 .noti-item {
   border: 1px solid gray;
