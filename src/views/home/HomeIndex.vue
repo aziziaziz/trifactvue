@@ -50,13 +50,14 @@
 
 <script setup>
 import { ref, onBeforeMount, onMounted } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { dateFormat } from '../../js/helper';
 import { useStore } from 'vuex';
 import { get } from '../../js/apiCall';
 
 const router = useRouter();
 const store = useStore();
+const route = useRoute();
 
 //#region Data
 const showMenu = ref(false); // To show or hide the menu for narrow screen
@@ -123,6 +124,8 @@ onMounted(() => {
   router.afterEach((to) => {
     displayLabel.value = to.meta.displayName || 'Current Location';
   });
+  // When first load, it will check from the route to show the correct display name
+  displayLabel.value = route.meta.displayName;
 
   // Getting all the space from DB and set to the store for global usage
   get('Space/AllSpace').then(d => store.state.spaceListing = d);
