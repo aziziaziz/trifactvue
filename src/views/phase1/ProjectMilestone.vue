@@ -8,15 +8,16 @@
     <table v-if="!isLoading && milestones.length > 0">
       <tr>
         <th>Description</th>
-        <th>Optimal Days</th>
         <th>Minimum Days</th>
+        <th>Optimal Days</th>
         <th>Expected Days</th>
       </tr>
       <tr v-for="(m,mInd) in milestones" :key="mInd">
         <td>{{ m.area_description }}</td>
-        <td>{{ m.suggested_days }}</td>
         <td>{{ m.min_days }}</td>
-        <td><input class="expected-input" v-model="m.user_input_days" /></td>
+        <td>{{ m.suggested_days }}</td>
+        <td><input class="expected-input" v-model="m.user_input_days"
+          style="width: 60px" /></td>
       </tr>
     </table>
     <div v-if="!isLoading && milestones.length == 0" class="no-milestone-text">No milestones saved</div>
