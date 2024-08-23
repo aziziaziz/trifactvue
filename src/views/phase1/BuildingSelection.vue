@@ -12,9 +12,14 @@
         <th>Weighting (1-10)</th>
       </tr>
       <tr v-for="(crit,critInd) in criteria" :key="critInd">
-        <td>{{ crit.criteria }}</td>
-        <td><input type="text"></td>
-        <td><input type="text"></td>
+        <td>
+          <div class="criteria-section">
+            <div>{{ crit.criteria }}</div>
+            <input type="text" placeholder="Remarks" v-model="crit.remarks">
+          </div>
+        </td>
+        <td><input type="text" v-model="crit.preference"></td>
+        <td><input type="text" v-model="crit.weighting"></td>
       </tr>
     </table>
   </div>
@@ -29,7 +34,7 @@
       </div>
       <div v-else-if="linkSharedDetails" class="share-link-popup-details">
         <div>Link have been shared previously and will expire at {{ linkSharedDetails.expiry_datetime }}.</div>
-        <div>You can also extend the time for the share link below</div>
+        <div>You can extend the time for the share link or update the share details below</div>
         <div class="extend-share-id-section">
           <div>Extend</div>
           <select v-model="extendTime">
@@ -40,6 +45,9 @@
           </select>
           <div>Hours</div>
           <Button theme="submit" @click="extendTimeClicked">Extend</Button>
+        </div>
+        <div class="extend-share-id-section">
+          <Button theme="submit" @click="updateShareDetailsClicked">Update Share Details</Button>
         </div>
       </div>
       <div v-if="!loadingShareId" class="share-link">
@@ -55,7 +63,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { showNoti, wait } from '../../js/helper';
+import { showNoti } from '../../js/helper';
 import { useStore } from 'vuex';
 import { get, post, put } from '../../js/apiCall';
 
@@ -90,7 +98,7 @@ const shareClicked = async () => {
   } else { // Generate a new share id
     // Generating the share link from the backend
     let url = `FormShare/GenerateShareId?client=${store.state.currentClient.client_uid}&page=BuildingSelection&user=${localStorage.getItem('user')}&expire=0.1`;
-    let shareId = await post(url, {name: 'bob'});
+    let shareId = await post(url, criteria.value);
     shareLink.value = shareId;
   }
 
@@ -117,18 +125,37 @@ const extendTimeClicked = async () => {
     extendTime.value = '';
   }
 }
+const updateShareDetailsClicked = async () => {
+  // Update the json for the particular share id
+  loadingShareId.value = true;
+
+  await put(`FormShare/UpdateJson?id=${shareLink.value}`, criteria.value);
+
+  loadingShareId.value = false;
+}
 //#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
   // The list of criteria, call from DB once backend done
   loadingCriteria.value = true;
-  criteria.value = [
-    { criteria: 'Floor Size' },
-    { criteria: 'Efficiency Rate' },
-    { criteria: 'Ceiling Height' },
-  ];
-  await wait(2000);
+  let benchmark = [];
+
+  // Getting the benchmark for the user
+  benchmark = await get(`BuildingBenchmark/GetAllBuildingBenchmarkByClientUid?client_uid=${store.state.currentClient.client_uid}`);
+  // If user benchmark has not been saved, then get all the benchmark
+  if (benchmark.length == 0) {
+    // Get all the benchmark
+    benchmark = await get('BuildingBenchmark/GetAllBuildingBenchmark');
+  }
+
+  // Mapping the benchmark details to the criteria object
+  criteria.value = benchmark.map(b => ({
+    criteria: b.benchmark_description,
+    preference: '',
+    weighting: '',
+    remarks: ''
+  }));
   loadingCriteria.value = false;
 });
 //#endregion Lifecycle
@@ -199,5 +226,10 @@ td > input {
 }
 .extend-share-id-section > select {
   padding: 5px;
+}
+.criteria-section {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
 }
 </style>
