@@ -23,13 +23,28 @@
     <template v-slot:header>Share Link</template>
     <template v-slot:content>
       <Loader v-if="loadingShareId" text="Generating Share Link" />
-      <div v-else class="share-link-popup-details">
+      <div v-else-if="!linkSharedDetails" class="share-link-popup-details">
         <div>You may share this form via the link below</div>
         <div>This link will only bbe available for up to 12 hours only</div>
-        <div class="share-link">
-          <div class="link">{{ shareLink }}</div>
-          <Button class="copy-link" @click="copyLinkClicked">Copy Link</Button>
+      </div>
+      <div v-else-if="linkSharedDetails" class="share-link-popup-details">
+        <div>Link have been shared previously and will expire at {{ linkSharedDetails.expiry_datetime }}.</div>
+        <div>You can also extend the time for the share link below</div>
+        <div class="extend-share-id-section">
+          <div>Extend</div>
+          <select v-model="extendTime">
+            <option value="" disabled selected>Please Select</option>
+            <option value="1">1</option>
+            <option value="3">3</option>
+            <option value="6">6</option>
+          </select>
+          <div>Hours</div>
+          <Button theme="submit" @click="extendTimeClicked">Extend</Button>
         </div>
+      </div>
+      <div v-if="!loadingShareId" class="share-link">
+        <div class="link">{{ shareLink }}</div>
+        <Button class="copy-link" @click="copyLinkClicked">Copy Link</Button>
       </div>
     </template>
     <template v-slot:footer>
@@ -41,6 +56,10 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { showNoti, wait } from '../../js/helper';
+import { useStore } from 'vuex';
+import { get, post, put } from '../../js/apiCall';
+
+const store = useStore();
 
 //#region Data
 const criteria = ref([]); // The list of criteria for the user building selection
@@ -48,17 +67,33 @@ const loadingCriteria = ref(false); // Set to true whenn loading the criteria fr
 const showSharePopup = ref(false); // To show the share popup
 const loadingShareId = ref(false); // When generating the share id
 const shareLink = ref(''); // The share link that has been generated
+const linkSharedDetails = ref(null); // To show that the link has been share and if user wants to extend the time
+const extendTime = ref(''); // The value that the user selected to extend the time
 //#endregion Data
 
-//#region Lifecycle
+//#region Methods
 const shareClicked = async () => {
+  // Resetting all the values
+  shareLink.value = '';
+  linkSharedDetails.value = null;
+  extendTime.value = '';
+
   // Showing the share popup
   showSharePopup.value = true;
-
-  // Generating the share link from the backend
   loadingShareId.value = true;
-  await wait(1000);
-  shareLink.value = 'https://theurllink.com/BuildingSelectionForm?id=ujkjsd-fasdfbadf-1231buas-iuygq3';
+
+  // Check if link has been generated
+  let previousShare = await get(`FormShare/CheckShared?user=${localStorage.getItem('user')}&client=${store.state.currentClient.client_uid}`);
+  if (previousShare.length > 0) { // If the share id has been generated
+    linkSharedDetails.value = previousShare[0];
+    shareLink.value = previousShare[0].share_id;
+  } else { // Generate a new share id
+    // Generating the share link from the backend
+    let url = `FormShare/GenerateShareId?client=${store.state.currentClient.client_uid}&page=BuildingSelection&user=${localStorage.getItem('user')}&expire=0.1`;
+    let shareId = await post(url, {name: 'bob'});
+    shareLink.value = shareId;
+  }
+
   loadingShareId.value = false;
 }
 const copyLinkClicked = () => {
@@ -68,7 +103,21 @@ const copyLinkClicked = () => {
   // Showing that the copy successful
   showNoti('Copied to clipboard!', 'success');
 }
-//#endregion Lifecycle
+const extendTimeClicked = async () => {
+  // Check if the extend time is selected
+  if (extendTime.value) {
+    loadingShareId.value = true;
+
+    let newTime = await put(`FormShare/ExtendShareTime?id=${shareLink.value}&time=${extendTime.value}`);
+    linkSharedDetails.value.expiry_datetime = newTime;
+
+    loadingShareId.value = false;
+
+    // Reset back the value of the extendtime
+    extendTime.value = '';
+  }
+}
+//#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
@@ -137,5 +186,18 @@ td > input {
 .share-link > .copy-link {
   width: fit-content;
   white-space: nowrap;
+}
+.extend-share-id-section {
+  display: flex;
+  align-items: center;
+  column-gap: 5px;
+  justify-content: center;
+  margin-top: 5px;
+}
+.extend-share-id-section > Button {
+  width: fit-content;
+}
+.extend-share-id-section > select {
+  padding: 5px;
 }
 </style>
