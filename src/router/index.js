@@ -13,6 +13,11 @@ const routes = [
     component: () => import('../views/DevItems.vue')
   },
   {
+    path: '/BuildingSelection/:id',
+    name: 'Building Selection',
+    component: () => import('../views/phase1/BuildingSelectionShare.vue')
+  },
+  {
     path: '/Home',
     name: 'Home',
     component: () => import('../views/home/HomeIndex.vue'),
