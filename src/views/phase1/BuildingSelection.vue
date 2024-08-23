@@ -164,7 +164,7 @@ onMounted(async () => {
   // Getting the benchmark for the user
   currentBenchmark.value = await get(`BuildingBenchmark/GetAllBuildingBenchmarkByClientUid?client_uid=${store.state.currentClient.client_uid}`);
   // If user benchmark has not been saved, then get all the benchmark
-  if (currentBenchmark.value.length == 0) {
+  if (currentBenchmark.value.length == 0) { // There are no saved data for the client
     // Get all the benchmark
     currentBenchmark.value = await get('BuildingBenchmark/GetAllBuildingBenchmark');
     // Mapping the details and setting the remarks
@@ -178,17 +178,28 @@ onMounted(async () => {
       remarks: ''
     }));
     originalBenchmark.value = [];
-  } else {
-    // Mapping the details and setting the remarks
-    currentBenchmark.value = currentBenchmark.value.map(b => ({
-      client_uid: b.client_uid,
-      benchmark_uid: b.benchmark_uid,
-      unit: b.unit,
-      description: b.description,
-      user_preference: b.user_preference,
-      weightage: b.weightage == 0 ? '' : b.weightage,
-      remarks: ''
-    }));
+  } else { // There is saved data for the client
+    // Getting the last share id
+    let lastId = await get(`FormShare/GetLastSharedId?user=${localStorage.getItem('user')}&client=${store.state.currentClient.client_uid}`);
+    // Checking if the last id is not empty, means it has been previously shared (without checking expiry)
+    if (lastId) {
+      // Getting the shared details
+      let details = await get(`FormShare/GetShareDetails?id=${lastId}`);
+      // Setting the current benchmark from the JSON that have been saved
+      currentBenchmark.value = details;
+    } else {
+      // Mapping the details and setting the remarks
+      currentBenchmark.value = currentBenchmark.value.map(b => ({
+        client_uid: b.client_uid,
+        benchmark_uid: b.benchmark_uid,
+        unit: b.unit,
+        description: b.description,
+        user_preference: b.user_preference,
+        weightage: b.weightage == 0 ? '' : b.weightage,
+        remarks: ''
+      }));
+    }
+
     originalBenchmark.value = JSON.parse(JSON.stringify(currentBenchmark.value));
   }
 
