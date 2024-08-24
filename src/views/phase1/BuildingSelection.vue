@@ -48,7 +48,7 @@
         </div>
       </div>
       <div v-if="!loadingShareId" class="share-link">
-        <div class="link">{{ shareLink }}</div>
+        <div class="link" @click="linkClicked">{{ shareLink }}</div>
         <Button class="copy-link" @click="copyLinkClicked">Copy Link</Button>
       </div>
     </template>
@@ -169,6 +169,9 @@ const saveAndShareClicked = async () => {
   await saveClicked();
   await shareClicked();
 }
+const linkClicked = () => {
+  window.open(shareLink.value, '_blank');
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -271,6 +274,8 @@ td > input {
   padding: 5px;
   border: 1px solid gray;
   border-radius: 10px;
+  cursor: pointer;
+  text-decoration: underline;
 }
 .share-link > .copy-link {
   width: fit-content;
