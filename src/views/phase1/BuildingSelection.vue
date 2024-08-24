@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { showNoti, compareData } from '../../js/helper';
 import { useStore } from 'vuex';
 import { get, post, put } from '../../js/apiCall';
@@ -72,15 +72,26 @@ const originalBenchmark = ref([]); // The original set of criteria from the DB f
 const loadingCriteria = ref(false); // Set to true whenn loading the criteria from DB
 const showSharePopup = ref(false); // To show the share popup
 const loadingShareId = ref(false); // When generating the share id
-const shareLink = ref(''); // The share link that has been generated
+const shareId = ref(''); // The share id that has been generated
 const linkSharedDetails = ref(null); // To show that the link has been share and if user wants to extend the time
 const extendTime = ref(''); // The value that the user selected to extend the time
 //#endregion Data
 
+//#region Computed
+const shareLink = computed(() => { // The shareable link
+  // Check if the share id has already been generated, if not, return empty string
+  if (shareId.value) {
+    return `${window.location.origin}/BuildingSelection/${shareId.value}`;
+  } else {
+    return '';
+  }
+});
+//#endregion Computed
+
 //#region Methods
 const shareClicked = async () => {
   // Resetting all the values
-  shareLink.value = '';
+  shareId.value = '';
   linkSharedDetails.value = null;
   extendTime.value = '';
 
@@ -92,21 +103,21 @@ const shareClicked = async () => {
   let previousShare = await get(`FormShare/CheckShared?user=${localStorage.getItem('user')}&client=${store.state.currentClient.client_uid}`);
   if (previousShare.length > 0) { // If the share id has been generated
     linkSharedDetails.value = previousShare[0];
-    shareLink.value = previousShare[0].share_id;
+    shareId.value = previousShare[0].share_id;
 
     // Update the json details
     await updateShareDetailsClicked();
   } else { // Generate a new share id
     // Generating the share link from the backend
     let url = `FormShare/GenerateShareId?client=${store.state.currentClient.client_uid}&page=BuildingSelection&user=${localStorage.getItem('user')}&expire=0.1`;
-    let shareId = await post(url, currentBenchmark.value);
-    shareLink.value = shareId;
+    let shareIdResult = await post(url, currentBenchmark.value);
+    shareId.value = shareIdResult;
   }
 
   loadingShareId.value = false;
 }
 const copyLinkClicked = () => {
-  // Copying the sharelink to clipboard
+  // Copying the shareId to clipboard
   navigator.clipboard.writeText(shareLink.value);
 
   // Showing that the copy successful
@@ -117,7 +128,7 @@ const extendTimeClicked = async () => {
   if (extendTime.value) {
     loadingShareId.value = true;
 
-    let newTime = await put(`FormShare/ExtendShareTime?id=${shareLink.value}&time=${extendTime.value}`);
+    let newTime = await put(`FormShare/ExtendShareTime?id=${shareId.value}&time=${extendTime.value}`);
     linkSharedDetails.value.expiry_datetime = newTime;
 
     loadingShareId.value = false;
@@ -130,11 +141,14 @@ const updateShareDetailsClicked = async () => {
   // Update the json for the particular share id
   loadingShareId.value = true;
 
-  await put(`FormShare/UpdateJson?id=${shareLink.value}`, currentBenchmark.value);
+  await put(`FormShare/UpdateJson?id=${shareId.value}`, currentBenchmark.value);
 
   loadingShareId.value = false;
 }
 const saveClicked = async () => {
+  // Show loading
+  loadingShareId.value = true;
+
   // Get the data to post with action
   let benchmarkToPost = compareData(originalBenchmark, currentBenchmark, 'benchmark_uid');
   benchmarkToPost = benchmarkToPost.map(b => {
@@ -145,6 +159,7 @@ const saveClicked = async () => {
 
   // Posting the data
   await put('BuildingBenchmark/UpdateClientBuildingBenchmark', benchmarkToPost);
+  loadingShareId.value = false;
 }
 const saveAndShareClicked = async () => {
   // Show the popup
