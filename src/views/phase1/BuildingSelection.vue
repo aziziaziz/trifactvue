@@ -59,8 +59,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
-import { showNoti, compareData } from '../../js/helper';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { showNoti, compareData, buildSignalR, hubDetails } from '../../js/helper';
 import { useStore } from 'vuex';
 import { get, post, put } from '../../js/apiCall';
 
@@ -75,6 +75,7 @@ const loadingShareId = ref(false); // When generating the share id
 const shareId = ref(''); // The share id that has been generated
 const linkSharedDetails = ref(null); // To show that the link has been share and if user wants to extend the time
 const extendTime = ref(''); // The value that the user selected to extend the time
+const signalHub = ref(null); // The connection to the signalR
 //#endregion Data
 
 //#region Computed
@@ -131,6 +132,11 @@ const extendTimeClicked = async () => {
     let newTime = await put(`FormShare/ExtendShareTime?id=${shareId.value}&time=${extendTime.value}`);
     linkSharedDetails.value.expiry_datetime = newTime;
 
+    // Invoke the signalr
+    if (signalHub.value) {
+      signalHub.value.invoke(hubDetails.BUILDINGEXTENDTIME, shareId.value);
+    }
+
     loadingShareId.value = false;
 
     // Reset back the value of the extendtime
@@ -179,6 +185,12 @@ onMounted(async () => {
   // The list of criteria, call from DB once backend done
   loadingCriteria.value = true;
 
+  // Build and connect to signalr
+  if (!signalHub.value) {
+    signalHub.value = buildSignalR(hubDetails.BUILDINGHUBNAME);
+    signalHub.value.start();
+  }
+
   // Getting the benchmark for the user
   currentBenchmark.value = await get(`BuildingBenchmark/GetAllBuildingBenchmarkByClientUid?client_uid=${store.state.currentClient.client_uid}`);
   // If user benchmark has not been saved, then get all the benchmark
@@ -222,6 +234,12 @@ onMounted(async () => {
   }
 
   loadingCriteria.value = false;
+});
+onBeforeUnmount(() => {
+  // Stop the hub connection
+  if (signalHub.value) {
+    signalHub.value.stop();
+  }
 });
 //#endregion Lifecycle
 </script>
