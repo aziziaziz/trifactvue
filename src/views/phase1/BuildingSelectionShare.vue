@@ -1,11 +1,11 @@
 <template>
   <div class="building-selection-share-main">
-    <div class="selection-title center">Building Selection {{ fullDetails ? `(${fullDetails.sqm_sqft})` : '' }}</div>
+    <div class="selection-title center">Building Selection {{ !pageErrorMessage && fullDetails ? `(${fullDetails.sqm_sqft})` : '' }}</div>
     <Loader v-if="loadingDetails" text="Loading Details" />
     <div v-else-if="pageErrorMessage" class="error-message error-text">{{ pageErrorMessage }}</div>
     <div v-else>
       <div class="center">Shared to client: {{ fullDetails?.client_name }}</div>
-      <div class="center">Expire at {{ fullDetails?.expiry_datetime }}</div>
+      <div class="center">Expiring in {{ expiryTime?.fullText() }}</div>
       <table>
         <tr>
           <th>Criteria</th>
@@ -29,6 +29,7 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { get } from '../../js/apiCall';
+import { dateDiff } from '../../js/helper';
 
 const route = useRoute();
 
@@ -37,7 +38,24 @@ const loadingDetails = ref(false); // When loading the page
 const fullDetails = ref(null); // The full details of the share id including the client name and unit
 const shareDetails = ref(null); // The details of the items that have been shared in the JSON file
 const pageErrorMessage = ref(''); // The error message to show to the user if the share id has expired or invalid or any other messages
+const expiryTime = ref(null); // The expiry time countdown
+const countdownTimer = ref(null); // The timer for the countdown
 //#endregion Data
+
+//#region Methods
+const startCountdown = (expiredTime) => {
+  countdownTimer.value = setInterval(() => {
+    // Get the current difference
+    expiryTime.value = (dateDiff(expiredTime, new Date()));
+
+    // Clear the interval once it is expired and show the expire message
+    if (expiryTime.value.millis < 0) {
+      clearInterval(countdownTimer.value);
+      pageErrorMessage.value = 'This link has expired. Please get a new link.';
+    }
+  }, 1000);
+}
+//#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
@@ -50,9 +68,19 @@ onMounted(async () => {
   // If the result from the DB is not empty
   if (fullDetails.value) {
     // Need to check here if the link has expired
-
-    // Loading the details from the JSON saved
-    shareDetails.value = await get(`FormShare/GetShareDetails?id=${route.params.id}`);
+    let expiredTime = new Date(fullDetails.value.expiry_datetime);
+    expiryTime.value = (dateDiff(expiredTime, new Date()));
+    if (expiryTime.value.millis < 0) {
+      pageErrorMessage.value = 'This link has expired. Please get a new link.';
+    } else {
+      // Set timeout to offset the millisecond difference
+      setTimeout(() => {
+        // Start the countdown
+        startCountdown(expiredTime);
+      }, expiryTime.value.millis);
+      // Loading the details from the JSON saved
+      shareDetails.value = await get(`FormShare/GetShareDetails?id=${route.params.id}`);
+    }
   } else {
     pageErrorMessage.value = 'This link is invalid.';
   }

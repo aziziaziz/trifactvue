@@ -147,3 +147,44 @@ export const showNoti = (text, theme, expires) => {
     theme: theme || 'default'
   });
 }
+// To find a difference between 2 dates
+export const dateDiff = (date1, date2) => {
+  // let totalMillis = date1.getTime() - date2.getTime();
+  let totalMillis = date1.getTime() - date2.getTime();
+
+  // The milliseconds
+  let millis = totalMillis % 1000;
+
+  // Getting the hours
+  let fullHours = totalMillis / 1000 / 60 / 60;
+  let hours = Math.floor(fullHours);
+
+  // Getting the minutes
+  let fullMinute = (fullHours - hours) * 60;
+  let minute = Math.floor(fullMinute);
+
+  // Getting the seconds
+  let fullSecond = (fullMinute - minute) * 60;
+  let second = Math.floor(fullSecond);
+  
+  return {
+    hours: hours,
+    minute: minute,
+    second: second,
+    millis: millis,
+    fullText: () => {
+      let text = [];
+      if (hours > 0) {
+        text.push(`${hours} ${hours > 1 ? 'Hours' : 'Hour'}`);
+      }
+      if (minute > 0) {
+        text.push(`${minute} ${minute > 1 ? 'Minutes' : 'Minute'}`);
+      }
+      if (second > 0) {
+        text.push(`${second} ${second > 1 ? 'Seconds' : 'Second'}`);
+      }
+
+      return text.join(' ');
+    }
+  }
+}
