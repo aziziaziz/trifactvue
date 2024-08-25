@@ -1,3 +1,4 @@
+import { HubConnectionBuilder } from '@microsoft/signalr';
 import store from '../store/index';
 
 const dayShort = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ];
@@ -6,6 +7,12 @@ const monthShort = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Se
 const monthLong = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];
 
 let questionSub = null; // Set the default question subscribe
+
+// Hub details enum
+export const hubDetails = {
+  BUILDINGHUBNAME: 'buildingSelectionHub',
+  BUILDINGEXTENDTIME: 'ShareTimeExtended'
+}
 
 export const dateFormat = (date, format) => {
   let result = format;
@@ -187,4 +194,10 @@ export const dateDiff = (date1, date2) => {
       return text.join(' ');
     }
   }
+}
+// To build the connection hub to the SignalR
+export const buildSignalR = (hubName) => {
+  // Build the hub
+  let hub = new HubConnectionBuilder().withUrl(`https://samuel-test.reeqzan.com/${hubName}`).build();
+  return hub;
 }
