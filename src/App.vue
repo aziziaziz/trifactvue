@@ -189,7 +189,6 @@ body {
 .warning-noti-theme {
   background-color: goldenrod;
   border: 1px solid yellow;
-  color: white;
 }
 .error-noti-theme {
   background-color: indianred;
@@ -199,6 +198,5 @@ body {
 .success-noti-theme {
   background-color: limegreen;
   border: 1px solid green;
-  color: white;
 }
 </style>
