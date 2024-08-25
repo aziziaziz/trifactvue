@@ -26,10 +26,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { get } from '../../js/apiCall';
-import { dateDiff } from '../../js/helper';
+import { buildSignalR, dateDiff, hubDetails, showNoti } from '../../js/helper';
 
 const route = useRoute();
 
@@ -38,15 +38,17 @@ const loadingDetails = ref(false); // When loading the page
 const fullDetails = ref(null); // The full details of the share id including the client name and unit
 const shareDetails = ref(null); // The details of the items that have been shared in the JSON file
 const pageErrorMessage = ref(''); // The error message to show to the user if the share id has expired or invalid or any other messages
+const currentExpiredTime = ref(null); // The current expired time
 const expiryTime = ref(null); // The expiry time countdown
 const countdownTimer = ref(null); // The timer for the countdown
+const signalHub = ref(null); // The hub connection
 //#endregion Data
 
 //#region Methods
-const startCountdown = (expiredTime) => {
+const startCountdown = () => {
   countdownTimer.value = setInterval(() => {
     // Get the current difference
-    expiryTime.value = (dateDiff(expiredTime, new Date()));
+    expiryTime.value = (dateDiff(currentExpiredTime.value, new Date()));
 
     // Clear the interval once it is expired and show the expire message
     if (expiryTime.value.millis < 0) {
@@ -62,21 +64,44 @@ onMounted(async () => {
   // Show the loading
   loadingDetails.value = true;
 
+  // Connect to the signalr
+  if (!signalHub.value) {
+    signalHub.value = buildSignalR(hubDetails.BUILDINGHUBNAME);
+    signalHub.value.start();
+  }
+
+  // Listening to the signal if there is an extend time
+  signalHub.value.on(hubDetails.BUILDINGEXTENDTIME, async (id) => {
+    // Checking if the id passed same as the current id
+    if (id == route.params.id) {
+      // Getting the full details again
+      fullDetails.value = await get(`FormShare/GetShareFullDetails?id=${route.params.id}`);
+
+      // Checking if the full details is not empty
+      if (fullDetails.value) {
+        // set the current expired time
+        currentExpiredTime.value = new Date(fullDetails.value.expiry_datetime);
+        // Show notification saying that the time has been extended
+        showNoti('Expiry time extended', 'success');
+      }
+    }
+  });
+
   // Get the full details for the share id
   fullDetails.value = await get(`FormShare/GetShareFullDetails?id=${route.params.id}`);
 
   // If the result from the DB is not empty
   if (fullDetails.value) {
     // Need to check here if the link has expired
-    let expiredTime = new Date(fullDetails.value.expiry_datetime);
-    expiryTime.value = (dateDiff(expiredTime, new Date()));
+    currentExpiredTime.value = new Date(fullDetails.value.expiry_datetime);
+    expiryTime.value = (dateDiff(currentExpiredTime.value, new Date()));
     if (expiryTime.value.millis < 0) {
       pageErrorMessage.value = 'This link has expired. Please get a new link.';
     } else {
       // Set timeout to offset the millisecond difference
       setTimeout(() => {
         // Start the countdown
-        startCountdown(expiredTime);
+        startCountdown();
       }, expiryTime.value.millis);
       // Loading the details from the JSON saved
       shareDetails.value = await get(`FormShare/GetShareDetails?id=${route.params.id}`);
@@ -87,7 +112,13 @@ onMounted(async () => {
   
   // Hide the loading
   loadingDetails.value = false;
-})
+});
+onBeforeUnmount(() => {
+  // Stop the connection to the hub
+  if (signalHub.value) {
+    signalHub.value.stop();
+  }
+});
 //#endregion Lifecycle
 </script>
 
