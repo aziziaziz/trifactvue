@@ -16,7 +16,7 @@
 <script setup>
 import { defineProps, ref, onMounted, defineEmits } from 'vue';
 import { useRouter } from 'vue-router';
-import { popup } from '../js/helper';
+import { popup, wait } from '../js/helper';
 
 const router = useRouter();
 
@@ -132,7 +132,7 @@ const menuClicked = (menu) => {
 //#endregion Methods
 
 //#region Lifecycle
-onMounted(() => {
+onMounted(async () => {
   // Only set the the showChildren if the menuItems has item
   if (props.menuItems.length > 0) {
     showChildren.value = props.menuItems.map(m => m.opened);
@@ -140,11 +140,14 @@ onMounted(() => {
 
   // Get the exact height of each of the children element
   childrenStartHeight.value = menuChildren.value.map(m => m.getBoundingClientRect().height);
+  // Small waiting to make sure that the height is correct
+  await wait(100);
   // Set the max-height first, then set the transition to 0.3s so that the first time when loading the page, it will not have transition
   menuChildren.value.forEach((m, mInd) => {
     m.style.maxHeight = showChildren.value[mInd] ? `${childrenStartHeight.value[mInd]}px` : 0;
     m.style.transition = '0.3s';
   });
+
 });
 //#endregion Lifecycle
 </script>
