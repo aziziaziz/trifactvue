@@ -22,9 +22,11 @@
           <div>Hi {{ username }}!</div>
           <div>This is your first time logging in.</div>
           <div>Please set a new password.</div>
-          <Input placeholder="New Password" />
-          <Input placeholder="Re-enter Password" />
-          <Button @click="showChangePassword = false">Change Password</Button>
+          <Input placeholder="New Password" inputType="password" v-model:value="newPassword" disableClear
+            @enter="changePasswordClicked" ref="newPasswordInput" />
+          <Input placeholder="Re-enter Password" inputType="password" v-model:value="reenterPassword" disableClear
+            @enter="changePasswordClicked" ref="reenteredPasswordInput" />
+          <Button @click="changePasswordClicked">Change Password</Button>
         </div>
       </Transition>
     </div>
@@ -34,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue';
+import { ref, onBeforeMount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { post } from '../js/apiCall';
 import { showNoti } from '../js/helper';
@@ -48,6 +50,10 @@ const usernameInput = ref(null); // The input of the username
 const passwordInput = ref(null); // The input of the password
 const loggingIn = ref(false); // The loading used when calling the api for login
 const showChangePassword = ref(false); // To show the change password page
+const newPassword = ref(''); // The new password that the user entered
+const reenterPassword = ref(''); // The new password that the user re-entered for confirmation
+const newPasswordInput = ref(null); // The new password input element
+const reenteredPasswordInput = ref(null); // The reentered password input element
 //#endregion Data
 
 //#region Methods
@@ -65,9 +71,6 @@ const performLogin = async () => {
     passwordInput.value.setFocus(true);
     return;
   }
-
-  usernameInput.value.setFocus();
-  passwordInput.value.setFocus();
 
   // Perform login API call
   loggingIn.value = true;
@@ -89,12 +92,51 @@ const performLogin = async () => {
   } else {
     // Checking if the message for first time login users
     if (login.message == 'First time login') {
+      // Clear the previous password and the new passwords
+      password.value = '';
+      newPassword.value = '';
+      reenterPassword.value = '';
+
       // Showing the change password section
       showChangePassword.value = true;
+
+      // Focus to the new password input
+      await nextTick();
+      newPasswordInput.value.setFocus(true);
     } else {
       // Show a notification saying that the username or password is invalid
       showNoti('Username or password is invalid', 'error');
+
+      // Focus on the password element
+      await nextTick();
+      passwordInput.value.setFocus(true);
     }
+  }
+}
+const changePasswordClicked = async () => {
+  // Checking if the new password is not entered
+  if (!newPassword.value) {
+    // Show error noti and focus
+    showNoti('Please enter your new password', 'error');
+    newPasswordInput.value.setFocus(true);
+    return;
+  }
+
+  // Checking if the reentered password is not entered
+  if (!reenterPassword.value) {
+    // Show error noti and focus
+    showNoti('Please enter your new password', 'error');
+    reenteredPasswordInput.value.setFocus(true);
+    return;
+  }
+
+  // Check when the new and re-entered password is the same value
+  if (newPassword.value == reenterPassword.value) {
+    // Handle when the password matches
+  } else {
+    // Show error that the passwords does not match and focus to the reenter password input
+    showNoti('New password entered does not match.', 'error');
+    reenteredPasswordInput.value.setFocus(true);
   }
 }
 //#endregion Methods
