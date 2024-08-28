@@ -26,27 +26,31 @@
 <script setup>
 import { ref, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
+import { post } from '../js/apiCall';
+import { showNoti } from '../js/helper';
 
 const router = useRouter();
 
 //#region Data
-const username = ref('');
-const password = ref('');
-
-const usernameInput = ref(null);
-const passwordInput = ref(null);
-
-const loggingIn = ref(false);
+const username = ref(''); // The username value
+const password = ref(''); // The password value
+const usernameInput = ref(null); // The input of the username
+const passwordInput = ref(null); // The input of the password
+const loggingIn = ref(false); // The loading used when calling the api for login
 //#endregion Data
 
 //#region Methods
-const performLogin = () => {
+const performLogin = async () => {
+  // Check if username is empty
   if (!username.value) {
     usernameInput.value.setFocus(true);
+    showNoti('Please enter your username', 'error');
     return;
   }
 
+  // Check if password is empty
   if (!password.value) {
+    showNoti('Please enter your password', 'error');
     passwordInput.value.setFocus(true);
     return;
   }
@@ -56,18 +60,30 @@ const performLogin = () => {
 
   // Perform login API call
   loggingIn.value = true;
+  let login = await post('Auth/Login', {
+    username: username.value,
+    password: password.value
+  });
+  loggingIn.value = false;
 
-  setTimeout(() => {
-    loggingIn.value = false;
-    if (username.value == 'admin') {
-      localStorage.setItem('user', username.value);
-      localStorage.setItem('loginTime', new Date());
-      router.push('/Home');
-      // Simulating correct username and password
+  // Checking the login result
+  if (login.success) {
+    // When the login success
+    localStorage.setItem('user', username.value);
+    localStorage.setItem('loginTime', new Date());
+    localStorage.setItem('token', login.token);
+
+    // Pushing to home page
+    router.push('/Home');
+  } else {
+    // Checking if the message for first time login users
+    if (login.message == 'First time login') {
+      // To handle for change password page
     } else {
-      // Needs to handle for wrong username or password
+      // Show a notification saying that the username or password is invalid
+      showNoti('Username or password is invalid', 'error');
     }
-  }, 3000);
+  }
 }
 //#endregion Methods
 
