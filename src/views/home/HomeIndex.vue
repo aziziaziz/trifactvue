@@ -93,6 +93,9 @@ const logoutClicked = () => {
   // To clear all the user details upon logout from the local storage
   localStorage.removeItem('user');
   localStorage.removeItem('loginTime');
+  localStorage.removeItem('client');
+  localStorage.removeItem('token');
+  localStorage.removeItem('userid');
 
   // Push back to home
   router.push('/');
