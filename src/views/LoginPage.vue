@@ -16,7 +16,7 @@
             ref="passwordInput" @enter="performLogin" :disabled="loggingIn" />
           <Button @click="performLogin" :loading="loggingIn">Login</Button>
           
-          <a>Forgot Password?</a>
+          <a @click="testingClearPasswordFor2">Forgot Password?</a>
         </div>
         <div v-else class="login-container">
           <div>Hi {{ username }}!</div>
@@ -26,7 +26,7 @@
             @enter="changePasswordClicked" ref="newPasswordInput" />
           <Input placeholder="Re-enter Password" inputType="password" v-model:value="reenterPassword" disableClear
             @enter="changePasswordClicked" ref="reenteredPasswordInput" />
-          <Button @click="changePasswordClicked">Change Password</Button>
+          <Button @click="changePasswordClicked" :loading="changePasswordLoading">Change Password</Button>
         </div>
       </Transition>
     </div>
@@ -38,7 +38,7 @@
 <script setup>
 import { ref, onBeforeMount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
-import { post } from '../js/apiCall';
+import { post, put } from '../js/apiCall';
 import { showNoti } from '../js/helper';
 
 const router = useRouter();
@@ -54,6 +54,8 @@ const newPassword = ref(''); // The new password that the user entered
 const reenterPassword = ref(''); // The new password that the user re-entered for confirmation
 const newPasswordInput = ref(null); // The new password input element
 const reenteredPasswordInput = ref(null); // The reentered password input element
+const changePasswordLoading = ref(false); // The loading for the change password button
+const userId = ref(''); // The user uid from the DB
 //#endregion Data
 
 //#region Methods
@@ -86,6 +88,7 @@ const performLogin = async () => {
     localStorage.setItem('user', username.value);
     localStorage.setItem('loginTime', new Date());
     localStorage.setItem('token', login.token);
+    localStorage.setItem('userid', login.user_uid)
 
     // Pushing to home page
     router.push('/Home');
@@ -96,6 +99,9 @@ const performLogin = async () => {
       password.value = '';
       newPassword.value = '';
       reenterPassword.value = '';
+
+      // Setting the user id from DB
+      userId.value = login.user_uid;
 
       // Showing the change password section
       showChangePassword.value = true;
@@ -132,12 +138,37 @@ const changePasswordClicked = async () => {
 
   // Check when the new and re-entered password is the same value
   if (newPassword.value == reenterPassword.value) {
-    // Handle when the password matches
+    // Calling the api to update the user password
+    changePasswordLoading.value = true;
+    let updateResult = await put('User/UpdatePassword', {
+      user_id: userId.value,
+      password: newPassword.value
+    });
+    changePasswordLoading.value = false;
+
+    // Check if the updating of the user password success
+    if (updateResult) {
+      // Show success noti
+      showNoti('Password changed successfully. Please login with new password', 'success', 5000);
+
+      // Clear the new password values
+      newPassword.value = '';
+      reenterPassword.value = '';
+
+      // Change back to login page
+      showChangePassword.value = false;
+    } else {
+      // Show error notification
+      showNoti('There was an error while changing your password. Plese try again.', 'error', 5000);
+    }
   } else {
     // Show error that the passwords does not match and focus to the reenter password input
     showNoti('New password entered does not match.', 'error');
     reenteredPasswordInput.value.setFocus(true);
   }
+}
+const testingClearPasswordFor2 = async () => { // TO DELETE!!!!!!!
+  await put('User/ResetPassword?id=2');
 }
 //#endregion Methods
 
