@@ -7,16 +7,26 @@
     </div>
 
     <div class="right-container">
-      <div class="login-container">
-        <div>WELCOME</div>
-        <Input icon="login/user.png" v-model:value="username" placeholder="Username"
-          ref="usernameInput" @enter="performLogin" :disabled="loggingIn" />
-        <Input icon="login/lock.png" disableClear inputType="password" v-model:value="password" placeholder="Password"
-          ref="passwordInput" @enter="performLogin" :disabled="loggingIn" />
-        <Button @click="performLogin" :loading="loggingIn">Login</Button>
-        
-        <a>Forgot Password?</a>
-      </div>
+      <Transition name="loginContainer">
+        <div v-if="!showChangePassword" class="login-container">
+          <div>WELCOME</div>
+          <Input icon="login/user.png" v-model:value="username" placeholder="Username"
+            ref="usernameInput" @enter="performLogin" :disabled="loggingIn" />
+          <Input icon="login/lock.png" disableClear inputType="password" v-model:value="password" placeholder="Password"
+            ref="passwordInput" @enter="performLogin" :disabled="loggingIn" />
+          <Button @click="performLogin" :loading="loggingIn">Login</Button>
+          
+          <a>Forgot Password?</a>
+        </div>
+        <div v-else class="login-container">
+          <div>Hi {{ username }}!</div>
+          <div>This is your first time logging in.</div>
+          <div>Please set a new password.</div>
+          <Input placeholder="New Password" />
+          <Input placeholder="Re-enter Password" />
+          <Button @click="showChangePassword = false">Change Password</Button>
+        </div>
+      </Transition>
     </div>
 
     <div class="copyright">COPYRIGHT 2024</div>
@@ -37,6 +47,7 @@ const password = ref(''); // The password value
 const usernameInput = ref(null); // The input of the username
 const passwordInput = ref(null); // The input of the password
 const loggingIn = ref(false); // The loading used when calling the api for login
+const showChangePassword = ref(false); // To show the change password page
 //#endregion Data
 
 //#region Methods
@@ -78,7 +89,8 @@ const performLogin = async () => {
   } else {
     // Checking if the message for first time login users
     if (login.message == 'First time login') {
-      // To handle for change password page
+      // Showing the change password section
+      showChangePassword.value = true;
     } else {
       // Show a notification saying that the username or password is invalid
       showNoti('Username or password is invalid', 'error');
@@ -139,6 +151,7 @@ onBeforeMount(() => {
   justify-content: center;
   /* background-color: rgb(68,188,98); */
   background: linear-gradient(to right, transparent, rgb(69,188,98));
+  position: relative;
 }
 .login-container {
   width: 50%;
@@ -161,6 +174,18 @@ onBeforeMount(() => {
   text-align: center;
   pointer-events: none;
   left: 0;
+}
+.loginContainer-enter-active, .loginContainer-leave-active {
+  transition: 0.3s;
+  position: absolute;
+}
+.loginContainer-enter-from {
+  transform: translateX(20%);
+  opacity: 0;
+}
+.loginContainer-leave-to {
+  transform: translateX(-20%);
+  opacity: 0;
 }
 
 @media screen and (max-width: 900px) {
