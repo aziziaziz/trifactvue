@@ -96,6 +96,7 @@ const logoutClicked = () => {
   localStorage.removeItem('client');
   localStorage.removeItem('token');
   localStorage.removeItem('userid');
+  localStorage.removeItem('role');
 
   // Push back to home
   router.push('/');

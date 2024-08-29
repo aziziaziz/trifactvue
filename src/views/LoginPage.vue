@@ -88,7 +88,8 @@ const performLogin = async () => {
     localStorage.setItem('user', username.value);
     localStorage.setItem('loginTime', new Date());
     localStorage.setItem('token', login.token);
-    localStorage.setItem('userid', login.user_uid)
+    localStorage.setItem('userid', login.user_uid);
+    localStorage.setItem('role', login.user_role);
 
     // Pushing to home page
     router.push('/Home');
