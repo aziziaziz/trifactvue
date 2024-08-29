@@ -167,7 +167,7 @@ onMounted(async () => {
   user-select: none;
 }
 .menu-child {
-  margin-left: 20px;
+  margin-left: 10px;
 }
 .menu-item:hover {
   background-color: gray;
