@@ -25,7 +25,7 @@ const routes = [
       {
         path: '',
         name: 'Home',
-        meta: { displayName: 'Current Location' },
+        meta: { displayName: 'Current Client' },
         component: () => import('../views/home/Home.vue')
       },
       {
