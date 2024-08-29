@@ -143,6 +143,17 @@ onBeforeMount(() => {
     store.state.currentClient = JSON.parse(localStorage.getItem('client'));
   }
 
+  // Checking the role of the logged in user if master user, then add the maintenance page
+  if (localStorage.getItem('role') == '1') {
+    menu.value.push({
+      menu: 'Maintenance',
+      opened: true,
+      children: [
+        { menu: 'User Maintenance', icon: 'usermaintenance.png', path: 'UserMaintenance' }
+      ]
+    });
+  }
+
 })
 //#endregion Lifecycle
 </script>

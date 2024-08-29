@@ -51,6 +51,12 @@ const routes = [
         name: 'Building Selection [Phase 1]',
         meta: { displayName: 'Building Selection' },
         component: () => import('../views/phase1/BuildingSelection.vue')
+      },
+      {
+        path: 'UserMaintenance',
+        name: 'User Maintenance',
+        meta: { displayName: '' },
+        component: () => import('../views/maintenance/UserMaintenance.vue')
       }
     ]
   }
