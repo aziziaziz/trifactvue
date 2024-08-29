@@ -18,7 +18,7 @@
           </Transition>
         </div>
         <img class="menu-small-logo" src="../../assets/logo.png" alt="" @click="companyLogoClicked">
-        <div v-if="store.state.currentClient">{{ displayLabel }}: {{ store.state.currentClient.client_name }}</div>
+        <div v-if="store.state.currentClient">{{ displayLabel ? `${displayLabel}: ${store.state.currentClient.client_name}` : pageName }}</div>
         <div class="horizontal-spacer"></div>
         <div class="wide-username">{{ username }}</div>
         <div class="top-right-user-section" @click="showUserSection = !showUserSection">
@@ -82,6 +82,7 @@ const menu = ref([ // The list of menu to be shown
 const username = ref(''); // The user that is logged in
 const loggedInTime = ref(''); // The user last logged in time
 const displayLabel = ref('Current Location'); // Use to show the label on the top left of the top bar
+const pageName = ref(''); // The name of the route
 //#endregion Data
 
 //#region Methods
@@ -130,9 +131,11 @@ onMounted(() => {
   // When the router changes, then get the display name
   router.afterEach((to) => {
     displayLabel.value = to.meta.displayName || 'Current Location';
+    pageName.value = to.name;
   });
-  // When first load, it will check from the route to show the correct display name
+  // When first load, it will check from the route to show the correct display name or page name
   displayLabel.value = route.meta.displayName;
+  pageName.value = route.name;
 
   // Getting all the space from DB and set to the store for global usage
   get('Space/AllSpace').then(d => store.state.spaceListing = d);
