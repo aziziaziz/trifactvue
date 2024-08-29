@@ -54,16 +54,17 @@ const clientDetailsClicked = async (ind) => {
   // Check if currently client is selected and if it is, the need to add back into the client list
   if (localStorage.getItem('client')) {
     allClients.value.splice(ind, 0, JSON.parse(localStorage.getItem('client')));
+    ind++;
   }
 
   // Get the client based on the index
-  let client = allClients.value[ind + 1];
+  let client = allClients.value[ind];
   // Assign the client to the store and save in the localstorage
   store.state.currentClient = client;
   localStorage.setItem('client', JSON.stringify(client));
 
   // Remove the client from the full list and make it show at the top
-  allClients.value.splice(ind + 1, 1);
+  allClients.value.splice(ind, 1);
 }
 const addClientClicked = () => { // When adding a new client
   // Reset the values to default
