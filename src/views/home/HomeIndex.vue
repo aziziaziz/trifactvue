@@ -147,7 +147,7 @@ onBeforeMount(() => {
   }
 
   // Checking the role of the logged in user if master user, then add the maintenance page
-  if (localStorage.getItem('role') == '1') {
+  if (localStorage.getItem('role') == '1' || localStorage.getItem('role') == '2' || localStorage.getItem('role') == '3') {
     menu.value.push({
       menu: 'Maintenance',
       opened: true,
