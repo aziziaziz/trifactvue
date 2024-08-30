@@ -65,6 +65,15 @@ const addUserClicked = async () => {
   roleListing.value.forEach(r => r.value = r.role_desc);
   loadingRoles.value = false;
 }
+const getAllUsers = async () => {
+  // Clear the current users first
+  allUsers.value = [];
+
+  // Getting all the users from the DB
+  loadingUsers.value = true;
+  allUsers.value = await get('User/GetAllUsers');
+  loadingUsers.value = false;
+}
 const addNewUserClicked = async () => {
   // Checking if the username is empty
   if (!newUsername.value) {
@@ -105,21 +114,20 @@ const addNewUserClicked = async () => {
 
       // Show success noti
       showNoti('Successfully created a new user and email has been sent to the user containing their new password.', 'success');
+
+      // Call back the load user api so that the list gets updated
+      await getAllUsers();
     } else {
       // Show error noti
       showNoti('There was an error while creating the user. Please try again.', 'error');
     }
-
   }
 }
 //#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
-  // Getting all the users from the DB
-  loadingUsers.value = true;
-  allUsers.value = await get('User/GetAllUsers');
-  loadingUsers.value = false;
+  await getAllUsers();
 });
 //#endregion Lifecycle
 </script>
