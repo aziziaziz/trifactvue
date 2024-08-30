@@ -26,7 +26,7 @@
       </div>
     </template>
     <template v-slot:footer>
-      <Button theme="submit" @click="addNewUserClicked">Add User</Button>
+      <Button theme="submit" @click="addNewUserClicked" :loading="addNewUserLoading">Add User</Button>
       <Button theme="danger" @click="showAddPopup = false">Cancel</Button>
     </template>
   </Popup>
@@ -34,7 +34,8 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { get } from '../../js/apiCall';
+import { get, post } from '../../js/apiCall';
+import { question, showNoti } from '../../js/helper';
 
 //#region Data
 const loadingUsers = ref(false); // To show the loading when loading the users from the DB
@@ -45,6 +46,7 @@ const loadingRoles = ref(false); // The show loading when loading the role
 const selectedRole = ref(null); // For the role selected when adding the user
 const newUsername = ref(''); // The username when adding the user
 const newEmail = ref(''); // The email when adding the user
+const addNewUserLoading = ref(false); // Loading when saving the new user
 //#endregion Data
 
 //#region Methods
@@ -64,9 +66,51 @@ const addUserClicked = async () => {
   loadingRoles.value = false;
 }
 const addNewUserClicked = async () => {
-  console.log(newUsername.value);
-  console.log(newEmail.value);
-  console.log(selectedRole.value);
+  // Checking if the username is empty
+  if (!newUsername.value) {
+    showNoti('Please enter the username.', 'error');
+    return;
+  }
+
+  // Checking if the email is empty
+  if (!newEmail.value) {
+    showNoti('Please enter the email.', 'error');
+    return;
+  }
+
+  // Checking if the role is not selected
+  if (!selectedRole.value) {
+    showNoti('Please select the role.', 'error');
+    return;
+  }
+
+  // Asking if the email is correct
+  let confirmEmail = await question('Confirm User Email', `Do you confirm that the user email (${newEmail.value}) is correct?\nUser will receive an email with the password for first time login.\nWrong email will cause the user unable to login.`, 'Confirm', 'Cancel');
+
+  // Checking if user confirms the email
+  if (confirmEmail == 'Confirm') {
+    // Inserting the new user to DB
+    addNewUserLoading.value = true;
+    let addUserResult = await post('User/Register', {
+      username: newUsername.value,
+      email: newEmail.value,
+      role: selectedRole.value.role_id
+    });
+    addNewUserLoading.value = false;
+
+    // Check if the insertion of new user success
+    if (addUserResult) {
+      // Close the popup
+      showAddPopup.value = false;
+
+      // Show success noti
+      showNoti('Successfully created a new user and email has been sent to the user containing their new password.', 'success');
+    } else {
+      // Show error noti
+      showNoti('There was an error while creating the user. Please try again.', 'error');
+    }
+
+  }
 }
 //#endregion Methods
 
