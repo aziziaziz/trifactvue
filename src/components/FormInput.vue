@@ -1,8 +1,8 @@
 <template>
-	<div class="input-main">
+	<div :class="[ 'input-main', { 'input-disabled': disabled } ]">
 		<div class="input-label">{{ props.placeholder }} <span v-if="isRequired" class="error-text">**</span></div>
 		<input :class="[{ 'input-box-error': errorMessage }, 'input-box']" type="text" v-model="inputValue" @input="userInput"
-			@keydown="inputKeyDown">
+			@keydown="inputKeyDown" :disabled="disabled">
 		<div v-if="errorMessage" class="error-text">{{ errorMessage }}</div>
 	</div>
 </template>
@@ -15,6 +15,7 @@ const props = defineProps({
 	value: String, // Use for the value and it is binding to inputValue
 	isRequired: Boolean, // Used to indicate that this input is required
 	errorMessage: String, // Use to show the error message
+	disabled: { type: Boolean, default: false }, // To set that the input is disabled
 });
 const emit = defineEmits([
 	'update:value',
@@ -61,11 +62,15 @@ watch(() => props.value, (val) => {
 	flex-direction: column;
 	width: 100%;
 }
+.input-disabled {
+	pointer-events: none;
+	opacity: 0.6;
+}
 .input-box {
 	width: 100%;
 	padding: 5px 10px;
-  background-color: rgba(211,211,211,0.2);
-  border: 2px solid rgba(211,211,211,0.2);
+  background-color: rgba(250, 250, 250, 0.2);
+  border: 2px solid rgba(180, 180, 180, 0.4);
   border-radius: 5px;
 }
 .input-box-error {
