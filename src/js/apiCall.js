@@ -18,3 +18,8 @@ export const put = async (endpoint, data) => {
   let result = await api.put(endpoint, data);
   return result.data;
 }
+
+export const httpDelete = async (endpoint) => {
+  let result = await api.delete(endpoint);
+  return result;
+}
