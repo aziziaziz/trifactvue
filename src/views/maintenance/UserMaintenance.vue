@@ -1,5 +1,6 @@
 <template>
   <Loader v-if="loadingUsers" text="Loading Users" />
+  <Loader v-else-if="deletingUser" :text="deleteUserText" />
   <div class="user-maintenance-main" v-else>
     <Button class="add-user-button" theme="submit" @click="addUserClicked">Add User</Button>
     <div class="no-users" v-if="allUsers.length == 0">No available users</div>
@@ -10,7 +11,7 @@
       </div>
       <div class="user-buttons">
         <Button theme="submit">Edit</Button>
-        <Button theme="danger">Delete</Button>
+        <Button v-if="(u.username != 'Master1' && u.username != 'Master2') && u.username != currentUser" theme="danger" @click="deleteUserClicked(u)">Delete</Button>
       </div>
     </div>
   </div>
@@ -34,11 +35,13 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { get, post } from '../../js/apiCall';
+import { get, httpDelete, post } from '../../js/apiCall';
 import { question, showNoti } from '../../js/helper';
 
 //#region Data
+const currentUser = ref(''); // The current logged in user
 const loadingUsers = ref(false); // To show the loading when loading the users from the DB
+const deletingUser = ref(false); // To show loading when deleting a user
 const allUsers = ref([]); // The list of all the users from the DB
 const showAddPopup = ref(false); // To show the add user popup
 const roleListing = ref([]); // The list of roles that the user can choose when adding a new user
@@ -47,6 +50,7 @@ const selectedRole = ref(null); // For the role selected when adding the user
 const newUsername = ref(''); // The username when adding the user
 const newEmail = ref(''); // The email when adding the user
 const addNewUserLoading = ref(false); // Loading when saving the new user
+const deleteUserText = ref(''); // The text to show when deleting a user
 //#endregion Data
 
 //#region Methods
@@ -123,10 +127,36 @@ const addNewUserClicked = async () => {
     }
   }
 }
+const deleteUserClicked = async (user) => {
+  // Show a popup asking to confirm delete user
+  var confirmDelete = await question('Delete User', `Do you confirm you want to delete ${user.username} from the list of users?\nThis action cannot be undone,`, 'Delete', 'Cancel', true);
+  
+  // Checking if the user confirm to delete
+  if (confirmDelete == 'Delete') {
+    // Showing the name of the user that is being deleted
+    deleteUserText.value = `Deleting ${user.username}`;
+
+    // Call API to delete the user
+    deletingUser.value = true;
+    let deleteUser = await httpDelete(`User/DeleteUser?user_id=${user.user_id}`);
+    deletingUser.value = false;
+
+    // Check if the deletion is successful
+    if (deleteUser) {
+      showNoti(`User ${user.username} is successfully deleted.`, 'success');
+    } else {
+      showNoti(`There was an error while deleting ${user.username}. Please try again.`, 'error');
+    }
+
+    // Reload all the users again
+    await getAllUsers();
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
+  currentUser.value = localStorage.getItem('user');
   await getAllUsers();
 });
 //#endregion Lifecycle
