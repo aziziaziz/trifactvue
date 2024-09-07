@@ -157,6 +157,15 @@ onBeforeMount(() => {
     });
   }
 
+  // Checking the role of the logged user if master user, then show the dictionary maintenance
+  if (localStorage.getItem('role') == '1') {
+    // Check if maintenance exists
+    let maint = menu.value.find(m => m.menu == 'Maintenance');
+
+    if (maint) {
+      maint.children.push({ menu: 'Dictionary Maintenance', icon: 'usermaintenance.png', path: 'DictionaryMaintenance' });
+    }
+  }
 })
 //#endregion Lifecycle
 </script>

@@ -57,6 +57,12 @@ const routes = [
         name: 'User Maintenance',
         meta: { displayName: '' },
         component: () => import('../views/maintenance/UserMaintenance.vue')
+      },
+      {
+        path: 'DictionaryMaintenance',
+        name: 'Dictionary Maintenance',
+        meta: { displayName: '' },
+        component: () => import('../views/maintenance/DictionaryMaintenance.vue')
       }
     ]
   }
