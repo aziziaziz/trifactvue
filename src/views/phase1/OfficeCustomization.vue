@@ -1,37 +1,54 @@
 <template>
-  <div>
-    
+  <div class="office-custom-main">
+    <Input placeholder="Search Space" />
+    <Button @click="testClicked">Test</Button>
+    <div>{{ status }}</div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { showNoti } from '../../js/helper';
+// import { HubConnectionBuilder } from '@microsoft/signalr';
 
 //#region Data
-const allSpaces = ref([ // The spaces that are available for the user
-  {
-    "location": "KLCC",
-    "unit": "sqft",
-    "description": [
-      { "name": { "value": "Open Workstation" }, "count": "7", "totalSpace": "300" },
-      { "name": { "value": "Enclose Manager Office" }, "count": "3", "totalSpace": "250" },
-      { "name": { "value": "Small Meeting Room" }, "count": "5", "totalSpace": "800" },
-      { "name": { "value": "Medium Meeting Room" }, "count": "3", "totalSpace": "800" },
-      { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
-    ]
-  },
-  {
-    "location": "Test",
-    "unit": "sqm",
-    "description": [
-      { "name": { "value": "Open Workstation" }, "count": "15", "totalSpace": "1000" },
-      { "name": { "value": "Large Meeting Room" }, "count": "1", "totalSpace": "400"  }
-    ]
-  }
-]);
+const status = ref('');
+const count = ref(0);
 //#endregion Data
+
+//#region Methods
+const testClicked = () => {
+  // status.value = 'Question asked';
+  // let ans = await question('Delete Data', 'Are you sure you want to delete this data?', 'Delete', 'Cancel', true);
+  // status.value = `Replied with ${ans}`;
+  showNoti(`Noti ${++count.value}`, 'success');
+}
+//#endregion Methods
+
+//#region Lifecycle
+// onMounted(() => {
+  // let hub = new HubConnectionBuilder().withUrl('https://localhost:7248/buildingSelectionHub').build();
+  // hub.start();
+  
+  // hub.on('ShareTimeExtended', (id) => {
+  //   console.log('received : ', id);
+  // });
+
+  // setTimeout(() => {
+  //   console.log('invoked');
+  //   hub.invoke('ShareTimeExtended', 'thisismyid');
+
+  //   hub.stop();
+  // }, 3000);
+// });
+//#endregion Lifecycle
 </script>
 
 <style scoped>
-
+.office-custom-main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 </style>
