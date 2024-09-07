@@ -18,7 +18,7 @@
 
 <script setup>
 /* eslint-disable */
-import { ref, defineProps, defineEmits, defineExpose, onMounted } from 'vue';
+import { ref, defineProps, defineEmits, defineExpose, onMounted, watch } from 'vue';
 
 const props = defineProps({
   showIcon: { type: Boolean, default: false },
@@ -77,6 +77,12 @@ defineExpose({
   setFocus
 });
 //#endregion Expose
+
+//#region Watcher
+watch(() => props.value, (val) => {
+	inputValue.value = val;
+});
+//#endregion Watcher
 </script>
 
 <style scoped>
