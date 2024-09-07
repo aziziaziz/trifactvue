@@ -39,6 +39,12 @@ const savingDictionary = ref(false); // The loading when saving the dictionary
 
 //#region Methods
 const loadDictionary = async () => {
+  // Clear and resets all the values
+  dictionaryDetails.value = [];
+  originalDictionaryDetails.value = [];
+  detailsKeyName.value = '';
+  detailsUidName.value = '';
+
   // Loading the dictionary from the DB based on the selected dictionary
   dictionaryLoading.value = true;
   let details = await get(`Dictionary/GetDictionaryDetails?name=${selectedDictionary.value.value}`);
@@ -57,13 +63,10 @@ const loadDictionary = async () => {
       // Set to the details and ori details
       dictionaryDetails.value = JSON.parse(JSON.stringify(details));
       originalDictionaryDetails.value = JSON.parse(JSON.stringify(details));
+    } else if (selectedDictionary.value.interface == 2) { // This is for building selection
+      // Just show noti for now
+      showNoti('Interface for building selection is still in progress.', 'warning');
     }
-  } else {
-    // Clear the dictionary details if not found from the DB
-    dictionaryDetails.value = [];
-    originalDictionaryDetails.value = [];
-    detailsKeyName.value = '';
-    detailsUidName.value = '';
   }
 
   // Close the loading
@@ -97,35 +100,40 @@ const saveDictionaryClicked = async () => {
   // Get the compared values from helper
   savingDictionary.value = true;
 
-  let objToSave = compareData(originalDictionaryDetails, dictionaryDetails, detailsKeyName.value);
-  objToSave = objToSave.map(s => {
-    let obj = {};
-    // Set the action and name which is always the same
-    obj['action'] = s.action;
-    obj['name'] = selectedDictionary.value.table_description;
+  if (selectedDictionary.value.interface == 1) { // This is for generic saving
+    let objToSave = compareData(originalDictionaryDetails, dictionaryDetails, detailsKeyName.value);
+    objToSave = objToSave.map(s => {
+      let obj = {};
+      // Set the action and name which is always the same
+      obj['action'] = s.action;
+      obj['name'] = selectedDictionary.value.table_description;
 
-    // Check and restructure the obj to match with backend for insert and delete
-    if (s.action == 'I') {
-      obj['column_name'] = detailsKeyName.value;
-      obj['column_value'] = s[detailsKeyName.value];
-    } else if (s.action == 'D') {
-      obj['column_name'] = detailsUidName.value;
-      obj['column_value'] = s[detailsUidName.value].toString();
+      // Check and restructure the obj to match with backend for insert and delete
+      if (s.action == 'I') {
+        obj['column_name'] = detailsKeyName.value;
+        obj['column_value'] = s[detailsKeyName.value];
+      } else if (s.action == 'D') {
+        obj['column_name'] = detailsUidName.value;
+        obj['column_value'] = s[detailsUidName.value].toString();
+      }
+
+      return obj;
+    });
+
+    // Call the API for generic update
+    let updateResult = await put('Dictionary/UpdateGenericDictionary', objToSave);
+
+    // Check result and show noti
+    if (updateResult) {
+      // Show success noti
+      showNoti('Successfully saved your dictionary.', 'success');
+    } else {
+      // Show error noti
+      showNoti('There was an error while saving the dictionary. Please try again.', 'error');
     }
-
-    return obj;
-  });
-
-  // Call the API for generic update
-  let updateResult = await put('Dictionary/UpdateGenericDictionary', objToSave);
-
-  // Check result and show noti
-  if (updateResult) {
-    // Show success noti
-    showNoti('Successfully saved your dictionary.', 'success');
-  } else {
-    // Show error noti
-    showNoti('There was an error while saving the dictionary. Please try again.', 'error');
+  } else if (selectedDictionary.value.interface == 2) { // This is for the building selection saving
+    // Show noti only for now
+    showNoti('Saving the dictionary for building selection is still in progress', 'warrning');
   }
 
   savingDictionary.value = false;
