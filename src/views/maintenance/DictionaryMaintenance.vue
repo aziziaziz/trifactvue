@@ -5,17 +5,15 @@
 
     <Loader v-if="dictionaryLoading" text="Loading Dictionary Details" />
     <div v-else-if="dictionaryDetails.length > 0" class="details-main-container">
-      <Button theme="submit" class="save-dictionary-button" @click="saveDictionaryClicked">Save {{ selectedDictionary }}</Button>
+      <Button theme="submit" class="save-dictionary-button" @click="saveDictionaryClicked">Save {{ selectedDictionary.value }}</Button>
       <div v-for="(det, detInd) in dictionaryDetails" :key="detInd" class="details-container">
         <div class="details-key">{{ det.key }}</div>
-        <Button theme="danger" @click="deleteItemClicked(detInd)">Delete</Button>
+        <Button class="dd-button" theme="danger" @click="deleteItemClicked(detInd)">Delete</Button>
       </div>
       
       <div class="details-container">
-        <!-- [TOCHANGE] Using input -->
-        <input type="text" v-model="newDetails">
-        <!-- [TOCHANGE] Using input -->
-        <Button theme="submit" @click="addNewDetailsClicked">Add</Button>
+        <Input placeholder="New Item" v-model:value="newDetails" />
+        <Button class="dd-button" theme="submit" @click="addNewDetailsClicked">Add</Button>
       </div>
     </div>
   </div>
@@ -24,6 +22,7 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { get } from '../../js/apiCall';
+import { showNoti } from '../../js/helper';
 
 //#region Data
 const allDictionaryLoading = ref(false); // When loading all the dictionaries
@@ -32,6 +31,7 @@ const selectedDictionary = ref(null); // The dictionary that has been selected
 const dictionaryLoading = ref(false); // When loading the dictionary from the DB
 const dictionaryDetails = ref([]); // The details of the dictionary from the DB
 const originalDictionaryDetails = ref([]); // The original dictionary details
+const detailsKeyName = ref(''); // The key of the description
 const newDetails = ref(''); // The new details text that will be added
 //#endregion Data
 
@@ -46,8 +46,8 @@ const loadDictionary = async () => {
     // Check for the interface (UI) value to show the UI (1 being the default UI)
     if (selectedDictionary.value.interface == 1) {
       // Get the keyname and assign to key for the description
-      let keyName = Object.keys(details[0]).find(k => k.includes('description'));
-      details.forEach(d => d.key = d[keyName]);
+      detailsKeyName.value = Object.keys(details[0]).find(k => k.includes('description'));
+      details.forEach(d => d.key = d[detailsKeyName.value]);
 
       // Set to the details and ori details
       dictionaryDetails.value = JSON.parse(JSON.stringify(details));
@@ -57,6 +57,7 @@ const loadDictionary = async () => {
     // Clear the dictionary details if not found from the DB
     dictionaryDetails.value = [];
     originalDictionaryDetails.value = [];
+    detailsKeyName.value = '';
   }
 
   // Close the loading
@@ -69,18 +70,21 @@ const addNewDetailsClicked = () => {
     var hasIndex = dictionaryDetails.value.findIndex(det => det.key == newDetails.value);
 
     if (hasIndex >= 0) { // Found within the list
-      // [TOCHANGE] Using noti
-      alert(`${newDetails.value} is already in the list`);
+      showNoti(`${newDetails.value} is already in the list`, 'warning');
     } else { // Not found within the list
-      // [TOCHANGE] This to change to properly push
-      dictionaryDetails.value.push({ key: newDetails.value });
+      // Push with the details key name
+      let objToAdd = {
+        key: newDetails.value
+      };
+      objToAdd[detailsKeyName.value] = newDetails.value;
+      dictionaryDetails.value.push(objToAdd);
 
       // Clearing the new details
       newDetails.value = '';
     }
   } else {
-    // [TOCHANGE] Using noti
-    alert('Please fill in the new details');
+    // Show error when pressing add without anything
+    showNoti('Please fill in the new details', 'error');
   }
 }
 const saveDictionaryClicked = () => {
@@ -144,5 +148,8 @@ watch(selectedDictionary, (newVal) => {
 .save-dictionary-button {
   width: fit-content;
   align-self: flex-end;
+}
+.dd-button {
+  width: fit-content;
 }
 </style>
