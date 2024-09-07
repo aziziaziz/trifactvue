@@ -5,7 +5,7 @@
 
     <Loader v-if="dictionaryLoading" text="Loading Dictionary Details" />
     <div v-else-if="dictionaryDetails.length > 0" class="details-main-container">
-      <Button theme="submit" class="save-dictionary-button" @click="saveDictionaryClicked">Save {{ selectedDictionary.value }}</Button>
+      <Button theme="submit" class="save-dictionary-button" @click="saveDictionaryClicked" :loading="savingDictionary">Save {{ selectedDictionary.value }}</Button>
       <div v-for="(det, detInd) in dictionaryDetails" :key="detInd" class="details-container">
         <div class="details-key">{{ det.key }}</div>
         <Button class="dd-button" theme="danger" @click="deleteItemClicked(detInd)">Delete</Button>
@@ -21,8 +21,8 @@
 
 <script setup>
 import { onMounted, ref, watch } from 'vue';
-import { get } from '../../js/apiCall';
-import { showNoti } from '../../js/helper';
+import { get, put } from '../../js/apiCall';
+import { compareData, showNoti } from '../../js/helper';
 
 //#region Data
 const allDictionaryLoading = ref(false); // When loading all the dictionaries
@@ -32,7 +32,9 @@ const dictionaryLoading = ref(false); // When loading the dictionary from the DB
 const dictionaryDetails = ref([]); // The details of the dictionary from the DB
 const originalDictionaryDetails = ref([]); // The original dictionary details
 const detailsKeyName = ref(''); // The key of the description
+const detailsUidName = ref(''); // The uid key of the dictionary
 const newDetails = ref(''); // The new details text that will be added
+const savingDictionary = ref(false); // The loading when saving the dictionary
 //#endregion Data
 
 //#region Methods
@@ -49,6 +51,9 @@ const loadDictionary = async () => {
       detailsKeyName.value = Object.keys(details[0]).find(k => k.includes('description'));
       details.forEach(d => d.key = d[detailsKeyName.value]);
 
+      // Get the uid key
+      detailsUidName.value = Object.keys(details[0]).find(k => k.includes('_uid'));
+
       // Set to the details and ori details
       dictionaryDetails.value = JSON.parse(JSON.stringify(details));
       originalDictionaryDetails.value = JSON.parse(JSON.stringify(details));
@@ -58,6 +63,7 @@ const loadDictionary = async () => {
     dictionaryDetails.value = [];
     originalDictionaryDetails.value = [];
     detailsKeyName.value = '';
+    detailsUidName.value = '';
   }
 
   // Close the loading
@@ -87,9 +93,42 @@ const addNewDetailsClicked = () => {
     showNoti('Please fill in the new details', 'error');
   }
 }
-const saveDictionaryClicked = () => {
+const saveDictionaryClicked = async () => {
   // Get the compared values from helper
-  // [TOCHANGE] To change and call the API to save
+  savingDictionary.value = true;
+
+  let objToSave = compareData(originalDictionaryDetails, dictionaryDetails, detailsKeyName.value);
+  objToSave = objToSave.map(s => {
+    let obj = {};
+    // Set the action and name which is always the same
+    obj['action'] = s.action;
+    obj['name'] = selectedDictionary.value.table_description;
+
+    // Check and restructure the obj to match with backend for insert and delete
+    if (s.action == 'I') {
+      obj['column_name'] = detailsKeyName.value;
+      obj['column_value'] = s[detailsKeyName.value];
+    } else if (s.action == 'D') {
+      obj['column_name'] = detailsUidName.value;
+      obj['column_value'] = s[detailsUidName.value].toString();
+    }
+
+    return obj;
+  });
+
+  // Call the API for generic update
+  let updateResult = await put('Dictionary/UpdateGenericDictionary', objToSave);
+
+  // Check result and show noti
+  if (updateResult) {
+    // Show success noti
+    showNoti('Successfully saved your dictionary.', 'success');
+  } else {
+    // Show error noti
+    showNoti('There was an error while saving the dictionary. Please try again.', 'error');
+  }
+
+  savingDictionary.value = false;
 }
 const deleteItemClicked = (ind) => {
   // Remove from the dictionary details
