@@ -24,7 +24,6 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue';
 import { get } from '../../js/apiCall';
-import { wait } from '../../js/helper';
 
 //#region Data
 const allDictionaryLoading = ref(false); // When loading all the dictionaries
@@ -32,6 +31,7 @@ const dictionaryListing = ref([]); // The list of available dictionary
 const selectedDictionary = ref(null); // The dictionary that has been selected
 const dictionaryLoading = ref(false); // When loading the dictionary from the DB
 const dictionaryDetails = ref([]); // The details of the dictionary from the DB
+const originalDictionaryDetails = ref([]); // The original dictionary details
 const newDetails = ref(''); // The new details text that will be added
 //#endregion Data
 
@@ -39,15 +39,27 @@ const newDetails = ref(''); // The new details text that will be added
 const loadDictionary = async () => {
   // Loading the dictionary from the DB based on the selected dictionary
   dictionaryLoading.value = true;
-  await wait(500);
-  // [TOCHANGE] Getting the details from DB
-  dictionaryDetails.value = [
-    { key: `${selectedDictionary.value} 1` },
-    { key: `${selectedDictionary.value} 2` },
-    { key: `${selectedDictionary.value} 3` },
-    { key: `${selectedDictionary.value} 4` },
-    { key: `${selectedDictionary.value} 5` }
-  ];
+  let details = await get(`Dictionary/GetDictionaryDetails?name=${selectedDictionary.value.value}`);
+
+  // Checking if the details length is more than 0
+  if (details.length > 0) {
+    // Check for the interface (UI) value to show the UI (1 being the default UI)
+    if (selectedDictionary.value.interface == 1) {
+      // Get the keyname and assign to key for the description
+      let keyName = Object.keys(details[0]).find(k => k.includes('description'));
+      details.forEach(d => d.key = d[keyName]);
+
+      // Set to the details and ori details
+      dictionaryDetails.value = JSON.parse(JSON.stringify(details));
+      originalDictionaryDetails.value = JSON.parse(JSON.stringify(details));
+    }
+  } else {
+    // Clear the dictionary details if not found from the DB
+    dictionaryDetails.value = [];
+    originalDictionaryDetails.value = [];
+  }
+
+  // Close the loading
   dictionaryLoading.value = false;
 }
 const addNewDetailsClicked = () => {
@@ -89,7 +101,7 @@ onMounted(async () => {
 
   // Reformat to have the value
   dictionaryListing.value = dictionaries.map(d => {
-    d.value = d.table_Description;
+    d.value = d.table_description;
     return d;
   });
 
