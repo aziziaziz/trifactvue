@@ -87,7 +87,8 @@ const performLogin = async () => {
     // When the login success
     localStorage.setItem('user', username.value);
     localStorage.setItem('loginTime', new Date());
-    localStorage.setItem('token', login.token);
+    localStorage.setItem('token', login.access_Token);
+    localStorage.setItem('refresh', login.refresh_Token);
     localStorage.setItem('userid', login.user_uid);
     localStorage.setItem('role', login.user_role);
 
