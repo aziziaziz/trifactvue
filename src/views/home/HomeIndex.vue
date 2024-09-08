@@ -51,7 +51,7 @@
 <script setup>
 import { ref, onBeforeMount, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
-import { dateFormat } from '../../js/helper';
+import { dateFormat, showNoti } from '../../js/helper';
 import { useStore } from 'vuex';
 import { get } from '../../js/apiCall';
 
@@ -117,6 +117,11 @@ onBeforeMount(() => {
   }
 })
 onMounted(() => {
+  // Check if it is push from some other page to show that client is not selected
+  if (Object.keys(route.query).includes('choose')) {
+    showNoti('Please choose a client.', 'warning');
+  }
+
   // Getting the user name that is logged in to and the time that the user has logged in
   username.value = localStorage.getItem('user');
   loggedInTime.value = dateFormat(new Date(localStorage.getItem('loginTime')), 'dd/MM/yyyy HH:mm:ss');
