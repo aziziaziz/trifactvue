@@ -168,7 +168,10 @@ onBeforeMount(() => {
     let maint = menu.value.find(m => m.menu == 'Maintenance');
 
     if (maint) {
+      // Pushing the dictionary maintenance
       maint.children.push({ menu: 'Dictionary Maintenance', icon: 'usermaintenance.png', path: 'DictionaryMaintenance' });
+      // Pushing the role maintenance
+      maint.children.push({ menu: 'Role Maintenance', icon: 'usermaintenance.png', path: 'RoleMaintenance' });
     }
   }
 })

@@ -63,6 +63,12 @@ const routes = [
         name: 'Dictionary Maintenance',
         meta: { displayName: '' },
         component: () => import('../views/maintenance/DictionaryMaintenance.vue')
+      },
+      {
+        path: 'RoleMaintenance',
+        name: 'Role Maintenance',
+        meta: { displayName: '' },
+        component: () => import('../views/maintenance/RoleMaintenance.vue')
       }
     ]
   }
