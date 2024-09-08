@@ -135,7 +135,7 @@ onMounted(() => {
 
   // When the router changes, then get the display name
   router.afterEach((to) => {
-    displayLabel.value = to.meta.displayName || 'Current Location';
+    displayLabel.value = to.meta.displayName;
     pageName.value = to.name;
   });
   // When first load, it will check from the route to show the correct display name or page name
