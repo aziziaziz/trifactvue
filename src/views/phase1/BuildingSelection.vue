@@ -62,9 +62,11 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { showNoti, compareData, buildSignalR, hubDetails } from '../../js/helper';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import { get, post, put } from '../../js/apiCall';
 
 const store = useStore();
+const router = useRouter();
 
 //#region Data
 const currentBenchmark = ref([]); // The list of criteria for the user building selection
@@ -182,6 +184,12 @@ const linkClicked = () => {
 
 //#region Lifecycle
 onMounted(async () => {
+  // Go to home page if there are no client selected
+  if (!store.state.currentClient) {
+    router.push('/Home?choose');
+    return;
+  }
+
   // The list of criteria, call from DB once backend done
   loadingCriteria.value = true;
 
