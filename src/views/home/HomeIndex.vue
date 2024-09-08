@@ -51,7 +51,7 @@
 <script setup>
 import { ref, onBeforeMount, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
-import { dateFormat, showNoti } from '../../js/helper';
+import { dateFormat, showNoti, logout } from '../../js/helper';
 import { useStore } from 'vuex';
 import { get } from '../../js/apiCall';
 
@@ -91,13 +91,8 @@ const showHideMenu = () => {
   showMenu.value = !showMenu.value;
 }
 const logoutClicked = () => {
-  // To clear all the user details upon logout from the local storage
-  localStorage.removeItem('user');
-  localStorage.removeItem('loginTime');
-  localStorage.removeItem('client');
-  localStorage.removeItem('token');
-  localStorage.removeItem('userid');
-  localStorage.removeItem('role');
+  // Clear all the localstorage
+  logout();
 
   // Push back to home
   router.push('/');
