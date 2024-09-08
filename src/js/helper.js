@@ -201,3 +201,13 @@ export const buildSignalR = (hubName) => {
   let hub = new HubConnectionBuilder().withUrl(`https://samuel-test.reeqzan.com/${hubName}`).build();
   return hub;
 }
+export const logout = () => {
+  // To clear all the user details upon logout from the local storage
+  localStorage.removeItem('user');
+  localStorage.removeItem('loginTime');
+  localStorage.removeItem('client');
+  localStorage.removeItem('token');
+  localStorage.removeItem('refresh');
+  localStorage.removeItem('userid');
+  localStorage.removeItem('role');
+}
