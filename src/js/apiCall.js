@@ -28,18 +28,66 @@ export const get = async (endpoint) => {
 }
 
 export const post = async (endpoint, data) => {
-  let result = await api.post(endpoint, data);
-  return result.data;
+  try {
+    let result = await api.post(endpoint, data, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return result.data;
+  } catch (ex) {
+    // Checking if the status is unathorized (Meaning that the access token is already expired)
+    if (ex.response.status == 401) {
+      // Refresh the token
+      let refresh = await refreshToken();
+      // If refresh token success, re-run the method
+      if (refresh) {
+        return await post(endpoint, data);
+      }
+    }
+  }
 }
 
 export const put = async (endpoint, data) => {
-  let result = await api.put(endpoint, data);
-  return result.data;
+  try {
+    let result = await api.put(endpoint, data, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return result.data;
+  } catch (ex) {
+    // Checking if the status is unathorized (Meaning that the access token is already expired)
+    if (ex.response.status == 401) {
+      // Refresh the token
+      let refresh = await refreshToken();
+      // If refresh token success, re-run the method
+      if (refresh) {
+        return await put(endpoint, data);
+      }
+    }
+  }
 }
 
 export const httpDelete = async (endpoint) => {
-  let result = await api.delete(endpoint);
-  return result;
+  try {
+    let result = await api.delete(endpoint, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return result;
+  } catch (ex) {
+    // Checking if the status is unathorized (Meaning that the access token is already expired)
+    if (ex.response.status == 401) {
+      // Refresh the token
+      let refresh = await refreshToken();
+      // If refresh token success, re-run the method
+      if (refresh) {
+        return await httpDelete(endpoint);
+      }
+    }
+  }
 }
 
 const refreshToken = async () => {
