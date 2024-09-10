@@ -75,6 +75,7 @@ const menu = ref([ // The list of menu to be shown
       { menu: 'Cash Flow', icon: 'cashFlow.png' },
       { menu: '✓ Project Milestone', icon: 'projectmilestone.png', path: 'ProjectMilestone' },
       { menu: '✓ Building Selection', icon: 'buildingSelection.png', path: 'BuildingSelection' },
+      { menu: 'Building Selection - Developer', icon: 'buildingSelection.png', path: 'BuildingSelectionDeveloper' },
       { menu: 'Site TDD Findings', icon: 'siteTDD.png' },
     ]
   }
