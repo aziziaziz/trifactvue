@@ -138,10 +138,10 @@ onMounted(async () => {
     showChildren.value = props.menuItems.map(m => m.opened);
   }
 
-  // Get the exact height of each of the children element
-  childrenStartHeight.value = menuChildren.value.map(m => m.getBoundingClientRect().height);
   // Small waiting to make sure that the height is correct
   await wait(100);
+  // Get the exact height of each of the children element
+  childrenStartHeight.value = menuChildren.value.map(m => m.getBoundingClientRect().height);
   // Set the max-height first, then set the transition to 0.3s so that the first time when loading the page, it will not have transition
   menuChildren.value.forEach((m, mInd) => {
     m.style.maxHeight = showChildren.value[mInd] ? `${childrenStartHeight.value[mInd]}px` : 0;
