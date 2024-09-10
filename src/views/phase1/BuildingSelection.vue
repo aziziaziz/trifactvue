@@ -5,23 +5,56 @@
       <Button class="save-button" @click="saveAndShareClicked">Save & Share</Button>
       <Button class="save-button" theme="submit" @click="saveClicked">Save</Button>
     </div>
-    <table>
-      <tr>
-        <th>Criteria</th>
-        <th>Preference</th>
-        <th>Weighting (1-10)</th>
-      </tr>
-      <tr v-for="(crit,critInd) in currentBenchmark" :key="critInd">
-        <td>
-          <div class="criteria-section">
-            <div>{{ crit.description }}</div>
-            <input type="text" placeholder="Remarks" v-model="crit.remarks">
-          </div>
-        </td>
-        <td><input type="text" v-model="crit.user_preference"></td>
-        <td><input type="text" v-model="crit.weightage"></td>
-      </tr>
-    </table>
+    <div class="criteria-table-container">
+      <table class="main-criteria-table">
+        <tr>
+          <th colspan="3">Client's Details</th>
+        </tr>
+        <tr>
+          <th>Criteria</th>
+          <th>Preference</th>
+          <th>Weighting (1-10)</th>
+        </tr>
+        <tr v-for="(crit,critInd) in currentBenchmark" :key="critInd">
+          <td>
+            <div class="criteria-section">
+              <div>{{ crit.description }}</div>
+              <input type="text" placeholder="Remarks" v-model="crit.remarks">
+            </div>
+          </td>
+          <td><input type="text" v-model="crit.user_preference"></td>
+          <td><input type="text" v-model="crit.weightage"></td>
+        </tr>
+      </table>
+
+      <div v-for="(dev,devInd) in currentDeveloper" :key="devInd">
+        <table class="developer-table">
+          <tr>
+            <th colspan="2">
+              <div class="developer-table-name">
+                <div>{{ dev.developerName }}</div>
+                <img class="developer-delete" src="../../assets/delete.png" @click="developerDeleteClicked(devInd)" alt="">
+              </div>
+            </th>
+          </tr>
+          <tr>
+            <th>Value</th>
+            <th>Score</th>
+          </tr>
+          <tr v-for="(devCrit,devCritInd) in dev.criterias" :key="devCritInd">
+            <td>{{ devCrit.value }}</td>
+            <td>{{ devCrit.score }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div v-if="showChooseDeveloper" class="developer-section">
+        <Dropdown :items="allDevelopers" v-model:selected="selectedDeveloper" />
+        <Button @click="confirmDeveloperClicked">Choose Developer</Button>
+      </div>
+
+      <Button v-if="currentDeveloper.length < 3" class="add-developer-button" @click="chooseDeveloperClicked">+</Button>
+    </div>
   </div>
 
   <Popup :show="showSharePopup">
@@ -78,6 +111,17 @@ const shareId = ref(''); // The share id that has been generated
 const linkSharedDetails = ref(null); // To show that the link has been share and if user wants to extend the time
 const extendTime = ref(''); // The value that the user selected to extend the time
 const signalHub = ref(null); // The connection to the signalR
+const showChooseDeveloper = ref(false); // This is when the dropdown for the developer is shown
+const selectedDeveloper = ref(null); // The selected developer
+
+const currentDeveloper = ref([]);
+const allDevelopers = ref([ // Sample for all the developers
+  { value: 'Developer 1' },
+  { value: 'Developer 2' },
+  { value: 'Developer 3' },
+  { value: 'Developer 4' },
+  { value: 'Developer 5' }
+])
 //#endregion Data
 
 //#region Computed
@@ -180,6 +224,37 @@ const saveAndShareClicked = async () => {
 const linkClicked = () => {
   window.open(shareLink.value, '_blank');
 }
+const chooseDeveloperClicked = () => {
+  // Show the dropdown
+  showChooseDeveloper.value = true;
+}
+const confirmDeveloperClicked = () => {
+  // Checking if the developer is already selected
+  if (selectedDeveloper.value) {
+    // Formatting the current developer obj
+    let objToAdd = {
+      developerName: selectedDeveloper.value.value,
+      criterias: currentBenchmark.value.map(() => ({
+        value: Math.floor(Math.random() * 99),
+        score: '-'
+      }))
+    };
+
+    // Adding to the current developer
+    currentDeveloper.value.push(objToAdd);
+
+    // Clear the dropdown
+    selectedDeveloper.value = null;
+    showChooseDeveloper.value = false;
+  } else {
+    // Showing noti for developer is not selected
+    showNoti('Please select a developer.', 'error');
+  }
+}
+const developerDeleteClicked = (ind) => {
+  // Delete at the index
+  currentDeveloper.value.splice(ind, 1);
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -268,6 +343,11 @@ table tr th, table tr td {
   padding: 5px;
   white-space: nowrap;
 }
+td {
+  min-height: 60px;
+  max-height: 60px;
+  height: 60px;
+}
 td:first-child  {
   width: 100%;
 }
@@ -324,5 +404,35 @@ td > input {
   display: flex;
   flex-direction: column;
   row-gap: 5px;
+}
+.criteria-table-container {
+  display: flex;
+  align-items: flex-start;
+  column-gap: 5px;
+}
+.main-criteria-table {
+  width: 100%;
+}
+.add-developer-button {
+  width: fit-content;
+}
+.developer-section {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  row-gap: 5px;
+}
+.developer-table {
+  min-width: 200px;
+}
+.developer-table-name {
+  display: flex;
+  align-items: center;
+  column-gap: 5px;
+  justify-content: center;
+}
+.developer-delete {
+  height: 15px;
+  cursor: pointer;
 }
 </style>
