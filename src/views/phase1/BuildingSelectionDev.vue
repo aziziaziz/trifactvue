@@ -1,7 +1,18 @@
 <template>
   <div class="building-dev-main">
-    <FormInput placeholder="Developer name" v-model:value="devName" :disabled="currentCriteria.length > 0" />
-    <Button class="generate-criteria-button" @click="generateFormClicked">Generate Form</Button>
+    <div class="load-create-container">
+      <div class="load-create-button" @click="loadMode = true">Load Developer</div>
+      <div class="load-create-button" @click="loadMode = false">Create New Developer</div>
+      <div :class="[ { 'load-create-switch-create': !loadMode }, 'load-create-switch' ]"></div>
+    </div>
+    
+    <div v-if="loadMode" class="load-mode-section">
+      <Dropdown placeholder="Developer" />
+    </div>
+    <div v-else class="create-mode-section">
+      <FormInput placeholder="Developer name" v-model:value="devName" :disabled="currentCriteria.length > 0" />
+      <Button class="generate-criteria-button" @click="generateFormClicked">Generate Form</Button>
+    </div>
 
     <Loader v-if="loadingCriteras" text="Loading Criterias" />
     <div v-else-if="currentCriteria.length > 0" class="criteria-listing-container">
@@ -39,6 +50,7 @@ import { get } from '../../js/apiCall';
 import { showNoti } from '../../js/helper';
 
 //#region Data
+const loadMode = ref(true); // By default it will show the page as the load mode where the user needs to select the developer from the dropdown, it set to false, it will be a create mode where user will create a new developer
 const devName = ref(''); // The developer name
 const allCriterias = ref([]); // The list of criterias
 const currentCriteria = ref([]); // The list of the current criterias
@@ -161,5 +173,41 @@ td > input {
 }
 .available-criteria-container > Button {
   max-width: 150px;
+}
+.load-create-container {
+  display: flex;
+  column-gap: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px gray;
+  width: fit-content;
+  position: relative;
+}
+.load-create-button {
+  max-width: 200px;
+  min-width: 200px;
+  padding: 10px;
+  text-align: center;
+  z-index: 3;
+  cursor: pointer;
+}
+.load-create-switch {
+  position: absolute;
+  left: 0;
+  z-index: 2;
+  background-color: rgba(68,188,98,0.6);
+  max-width: 200px;
+  min-width: 200px;
+  height: 100%;
+  border-radius: 5px;
+  transition: 0.3s;
+  transform: translateX(0);
+}
+.load-create-switch-create {
+  transform: translateX(calc(100% + 10px));
+}
+.load-mode-section, .create-mode-section {
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
 }
 </style>
