@@ -11,6 +11,7 @@
     </div>
     <div v-else class="create-mode-section">
       <FormInput placeholder="Developer name" v-model:value="devName" :disabled="currentCriteria.length > 0" />
+      <Dropdown :items="store.state.unitListing" placeholder="Unit" v-model:selected="devUnit" />
       <Button class="generate-criteria-button" @click="generateFormClicked">Generate Form</Button>
     </div>
 
@@ -46,12 +47,16 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useStore } from 'vuex';
 import { get } from '../../js/apiCall';
 import { showNoti } from '../../js/helper';
 
+const store = useStore();
+
 //#region Data
 const loadMode = ref(true); // By default it will show the page as the load mode where the user needs to select the developer from the dropdown, it set to false, it will be a create mode where user will create a new developer
-const devName = ref(''); // The developer name
+const devName = ref(''); // The developer name when creating the developer
+const devUnit = ref(null); // The developer unit selection when creating the developer
 const allCriterias = ref([]); // The list of criterias
 const currentCriteria = ref([]); // The list of the current criterias
 // const originalCriteria = ref([]); // The list of the original criteria for comparing
@@ -63,24 +68,31 @@ const selectedCriteria = ref(null); // The selected criteria when add
 //#region Methods
 const generateFormClicked = async () => {
   // Checking if the developer name is filled in
-  if (devName.value) {
-    // Getting the all the criterias
-    loadingCriteras.value = true;
-    allCriterias.value = await get('BuildingBenchmark/GetAllBuildingBenchmark');
-    // Adding value key to all the criterias
-    allCriterias.value.forEach(c => c.value = c.benchmark_description)
-    
-    // First time, to get the top 5 criterias only
-    currentCriteria.value = allCriterias.value.slice(0, 5);
-    
-    // Assigning for the dropdown listing
-    availableCriterias.value = allCriterias.value.slice(5);
-
-    loadingCriteras.value = false;
-  } else {
-    // Show noti that the developer name is empty
+  if (!devName.value) {
+    // Show error noti
     showNoti('Developer name cannot be empty.', 'error');
+    return;
   }
+  // Checking if the developer unit is empty
+  if (!devUnit.value) {
+    // Show error noti
+    showNoti('Developer unit must be selected.', 'error');
+    return;
+  }
+
+  // Getting the all the criterias
+  loadingCriteras.value = true;
+  allCriterias.value = await get('BuildingBenchmark/GetAllBuildingBenchmark');
+  // Adding value key to all the criterias
+  allCriterias.value.forEach(c => c.value = c.benchmark_description)
+  
+  // First time, to get the top 5 criterias only
+  currentCriteria.value = allCriterias.value.slice(0, 5);
+  
+  // Assigning for the dropdown listing
+  availableCriterias.value = allCriterias.value.slice(5);
+
+  loadingCriteras.value = false;
 }
 const addCriteriaClicked = () => {
   // Checkinng if the selected criteria is selected
