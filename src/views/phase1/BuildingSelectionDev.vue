@@ -10,23 +10,23 @@
       <Dropdown placeholder="Developer" />
     </div>
     <div v-else class="create-mode-section">
-      <FormInput placeholder="Developer name" v-model:value="devName" :disabled="currentCriteria.length > 0" />
+      <FormInput placeholder="Developer name" v-model:value="devName" :disabled="allCriterias.length > 0" />
       <Dropdown :items="store.state.unitListing" placeholder="Unit" v-model:selected="devUnit" />
       <Button class="generate-criteria-button" @click="generateFormClicked">Generate Form</Button>
     </div>
 
     <Loader v-if="loadingCriteras" text="Loading Criterias" />
-    <div v-else-if="currentCriteria.length > 0" class="criteria-listing-container">
+    <div v-else-if="allCriterias.length > 0" class="criteria-listing-container">
       <div class="save-criteria-buttons">
         <Button @click="saveAndShareClicked">Save & Share</Button>
-        <Button theme="submit" @click="saveClicked">Save</Button>
+        <Button theme="submit" @click="saveClicked" :loading="savingCriteria">Save</Button>
       </div>
       <table>
         <tr>
           <th>Criteria</th>
           <th>Value</th>
         </tr>
-        <tr v-for="(crit,critInd) in currentCriteria" :key="critInd">
+        <tr v-for="(crit,critInd) in allCriterias" :key="critInd">
           <td>
             <div class="criteria-section">
               <div>{{ crit.benchmark_description }}</div>
@@ -36,11 +36,6 @@
           <td><input type="text" v-model="crit.user_preference"></td>
         </tr>
       </table>
-
-      <div class="available-criteria-container">
-        <Dropdown :items="availableCriterias" placeholder="Criteria" v-model:selected="selectedCriteria" />
-        <Button theme="submit" @click="addCriteriaClicked">Add Criteria</Button>
-      </div>
     </div>
   </div>
 </template>
@@ -48,7 +43,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useStore } from 'vuex';
-import { get } from '../../js/apiCall';
+import { get, put } from '../../js/apiCall';
 import { showNoti } from '../../js/helper';
 
 const store = useStore();
@@ -58,11 +53,9 @@ const loadMode = ref(true); // By default it will show the page as the load mode
 const devName = ref(''); // The developer name when creating the developer
 const devUnit = ref(null); // The developer unit selection when creating the developer
 const allCriterias = ref([]); // The list of criterias
-const currentCriteria = ref([]); // The list of the current criterias
 // const originalCriteria = ref([]); // The list of the original criteria for comparing
 const loadingCriteras = ref(false); // The loading of the criterias
-const availableCriterias = ref([]); // The available criterias in the dropdown
-const selectedCriteria = ref(null); // The selected criteria when add
+const savingCriteria = ref(false); // To show loading when saving the criteria
 //#endregion Data
 
 //#region Methods
@@ -84,52 +77,45 @@ const generateFormClicked = async () => {
   loadingCriteras.value = true;
   allCriterias.value = await get('BuildingBenchmark/GetAllBuildingBenchmark');
   // Adding value key to all the criterias
-  allCriterias.value.forEach(c => c.value = c.benchmark_description)
-  
-  // First time, to get the top 5 criterias only
-  currentCriteria.value = allCriterias.value.slice(0, 5);
-  
-  // Assigning for the dropdown listing
-  availableCriterias.value = allCriterias.value.slice(5);
+  allCriterias.value.forEach(c => c.value = c.benchmark_description);
 
   loadingCriteras.value = false;
-}
-const addCriteriaClicked = () => {
-  // Checkinng if the selected criteria is selected
-  if (selectedCriteria.value) {
-    // Get the selected index
-    let index = availableCriterias.value.findIndex(a => a.benchmark_uid == selectedCriteria.value.benchmark_uid);
-    // Removing from the available listing
-    availableCriterias.value.splice(index, 1);
-
-    // Adding into the current listing
-    currentCriteria.value.push(selectedCriteria.value);
-
-    // Clear the selected criteria
-    selectedCriteria.value = null;
-  } else {
-    // Show noti that the criteria is not selected
-    showNoti('Please select a criteria.', 'error');
-  }
 }
 const saveAndShareClicked = () => {
   showNoti('Button is not ready.', 'warning');
 }
 const saveClicked = async () => {
-  // Preparing the object to post
-  let objToPost = currentCriteria.value.map(c => {
-    return {
-      action: 'I',
-      developer_uid: 1,
-      benchmark_uid: c.benchmark_uid,
-      unit: 'sqft',
-      description: c.benchmark_description,
-      user_preference: c.value,
-      weightage: 0
-    };
-  });
+  if (loadMode.value) {
+    // When updating a current developer
+    showNoti('Updating current developer is not yet ready.', 'warning');
+  } else {
+    // Preparing the object to post for new developer
+    let objToPost = allCriterias.value.map(c => {
+      return {
+        action: 'I',
+        developer_uid: 0,
+        benchmark_uid: c.benchmark_uid,
+        unit: devUnit.value.acronym,
+        description: c.benchmark_description,
+        user_preference: '',
+        weightage: 0
+      };
+    });
 
-  console.log(objToPost);
+    // Calling the API to insert the new developer
+    savingCriteria.value = true;
+    let insertResult = await put(`BuildingBenchmark/UpdateDeveloperBuildingBenchmark?username=${localStorage.getItem('user')}&developerName=${devName.value}`, objToPost);
+    savingCriteria.value = false;
+    
+    // Checking for the result
+    if (insertResult) {
+      // Save successful
+      showNoti('Successfully saved your new developer.', 'success');
+    } else {
+      // Save failed
+      showNoti('There was an error occured while saving your new developer. Please try again.', 'error');
+    }
+  }
 }
 //#endregion Methods
 </script>
