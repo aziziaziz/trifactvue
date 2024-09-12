@@ -1,13 +1,15 @@
 <template>
-  <div class="building-dev-main">
+  <Loader v-if="loadingAllDeveloper" text="Loading Developers" />
+
+  <div v-else class="building-dev-main">
     <div class="load-create-container">
-      <div class="load-create-button" @click="loadMode = true">Load Developer</div>
-      <div class="load-create-button" @click="loadMode = false">Create New Developer</div>
+      <div class="load-create-button" @click="changePageType(true)">Load Developer</div>
+      <div class="load-create-button" @click="changePageType(false)">Create New Developer</div>
       <div :class="[ { 'load-create-switch-create': !loadMode }, 'load-create-switch' ]"></div>
     </div>
     
     <div v-if="loadMode" class="load-mode-section">
-      <Dropdown placeholder="Developer" />
+      <Dropdown placeholder="Developer" :items="allDevelopers" v-model:selected="selectedDeveloper" />
     </div>
     <div v-else class="create-mode-section">
       <FormInput placeholder="Developer name" v-model:value="devName" :disabled="allCriterias.length > 0" />
@@ -29,7 +31,7 @@
         <tr v-for="(crit,critInd) in allCriterias" :key="critInd">
           <td>
             <div class="criteria-section">
-              <div>{{ crit.benchmark_description }}</div>
+              <div>{{ crit.description }}</div>
               <input type="text" placeholder="Remarks" v-model="crit.remarks">
             </div>
           </td>
@@ -41,10 +43,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { get, put } from '../../js/apiCall';
-import { showNoti } from '../../js/helper';
+import { showNoti, compareData } from '../../js/helper';
 
 const store = useStore();
 
@@ -53,9 +55,13 @@ const loadMode = ref(true); // By default it will show the page as the load mode
 const devName = ref(''); // The developer name when creating the developer
 const devUnit = ref(null); // The developer unit selection when creating the developer
 const allCriterias = ref([]); // The list of criterias
+const originalCriterias = ref([]); // The original critierias when loading the details for the developer
 // const originalCriteria = ref([]); // The list of the original criteria for comparing
 const loadingCriteras = ref(false); // The loading of the criterias
 const savingCriteria = ref(false); // To show loading when saving the criteria
+const allDevelopers = ref([]); // The list of the developers
+const loadingAllDeveloper = ref(false); // When loading all the developers
+const selectedDeveloper = ref(null); // The selected developer
 //#endregion Data
 
 //#region Methods
@@ -77,7 +83,15 @@ const generateFormClicked = async () => {
   loadingCriteras.value = true;
   allCriterias.value = await get('BuildingBenchmark/GetAllBuildingBenchmark');
   // Adding value key to all the criterias
-  allCriterias.value.forEach(c => c.value = c.benchmark_description);
+  allCriterias.value = allCriterias.value.map(c => ({
+    action: null,
+    developer_uid: null,
+    benchmark_uid: c.benchmark_uid,
+    unit: devUnit.value.acronym,
+    description: c.benchmark_description,
+    user_preference: '',
+    weightage: 0
+  }));
 
   loadingCriteras.value = false;
 }
@@ -86,8 +100,22 @@ const saveAndShareClicked = () => {
 }
 const saveClicked = async () => {
   if (loadMode.value) {
-    // When updating a current developer
-    showNoti('Updating current developer is not yet ready.', 'warning');
+    // Getting the difference
+    let objToPost = compareData(originalCriterias, allCriterias, 'benchmark_uid');
+    
+    // Updating the developer
+    savingCriteria.value = true;
+    let updateResult = await put(`BuildingBenchmark/UpdateDeveloperBuildingBenchmark?username=${localStorage.getItem('user')}`, objToPost);
+    savingCriteria.value = false;
+
+    // Checking for the result
+    if (updateResult) {
+      // Save successful
+      showNoti('Successfully updated the developer.', 'success');
+    } else {
+      // Save failed
+      showNoti('There was an error occured while updating the developer. Please try again.', 'error');
+    }
   } else {
     // Preparing the object to post for new developer
     let objToPost = allCriterias.value.map(c => {
@@ -117,7 +145,39 @@ const saveClicked = async () => {
     }
   }
 }
+const changePageType = (isLoadMode) => {
+  // Changing the load mode
+  loadMode.value = isLoadMode;
+}
 //#endregion Methods
+
+//#region Lifecycle
+onMounted(async () => {
+  // Loading the list of the developers
+  loadingAllDeveloper.value = true;
+  let developers = await get('BuildingBenchmark/GetAllDevelopers');
+  // Setting the value so that it will show in the dropdown
+  developers.forEach(d => d.value = d.developer_name);
+
+  // Assigning the developers to the developer item for the dropdown
+  allDevelopers.value = developers;
+
+  loadingAllDeveloper.value = false;
+})
+//#endregion Lifecycle
+
+//#region Watcher
+watch(selectedDeveloper, async (dev) => {
+  // Getting the developer details
+  loadingCriteras.value = true;
+  let criterias = await get(`BuildingBenchmark/GetAllDeveloperBuldingBenchmarkByDeveloperId?develop_uid=${dev.developer_uid}`);
+  allCriterias.value = criterias;
+  // Setting up the original criterias
+  originalCriterias.value = JSON.parse(JSON.stringify(allCriterias.value));
+
+  loadingCriteras.value = false;
+})
+//#endregion Watcher
 </script>
 
 <style scoped>
