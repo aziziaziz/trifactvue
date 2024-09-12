@@ -42,7 +42,7 @@
             <th>Score</th>
           </tr>
           <tr v-for="(devCrit,devCritInd) in dev.criterias" :key="devCritInd">
-            <td>{{ devCrit.value }}</td>
+            <td>{{ devCrit.user_preference }}</td>
             <td>{{ devCrit.score }}</td>
           </tr>
         </table>
@@ -50,7 +50,7 @@
 
       <div v-if="showChooseDeveloper" class="developer-section">
         <Dropdown :items="allDevelopers" v-model:selected="selectedDeveloper" />
-        <Button @click="confirmDeveloperClicked">Choose Developer</Button>
+        <Button @click="confirmDeveloperClicked" :loading="choosingDeveloper">Choose Developer</Button>
       </div>
 
       <Button v-if="currentDeveloper.length < 3" class="add-developer-button" @click="chooseDeveloperClicked">+</Button>
@@ -113,15 +113,9 @@ const extendTime = ref(''); // The value that the user selected to extend the ti
 const signalHub = ref(null); // The connection to the signalR
 const showChooseDeveloper = ref(false); // This is when the dropdown for the developer is shown
 const selectedDeveloper = ref(null); // The selected developer
-
 const currentDeveloper = ref([]);
-const allDevelopers = ref([ // Sample for all the developers
-  { value: 'Developer 1' },
-  { value: 'Developer 2' },
-  { value: 'Developer 3' },
-  { value: 'Developer 4' },
-  { value: 'Developer 5' }
-])
+const allDevelopers = ref(); // The list of all the developers
+const choosingDeveloper = ref(false); // Loading when getting the developer details
 //#endregion Data
 
 //#region Computed
@@ -228,24 +222,29 @@ const chooseDeveloperClicked = () => {
   // Show the dropdown
   showChooseDeveloper.value = true;
 }
-const confirmDeveloperClicked = () => {
+const confirmDeveloperClicked = async () => {
   // Checking if the developer is already selected
   if (selectedDeveloper.value) {
-    // Formatting the current developer obj
+    choosingDeveloper.value = true;
+
+    // Calling API to get the details of the developer
+    let developerDetails = await get(`BuildingBenchmark/GetAllDeveloperBuldingBenchmarkByDeveloperId?develop_uid=${selectedDeveloper.value.developer_uid}`);
+    developerDetails.forEach(d => d.score = '-');
+
+    // Formatting the object
     let objToAdd = {
       developerName: selectedDeveloper.value.value,
-      criterias: currentBenchmark.value.map(() => ({
-        value: Math.floor(Math.random() * 99),
-        score: '-'
-      }))
+      criterias: developerDetails
     };
 
-    // Adding to the current developer
+    // Push into the current developer list
     currentDeveloper.value.push(objToAdd);
 
     // Clear the dropdown
     selectedDeveloper.value = null;
     showChooseDeveloper.value = false;
+    
+    choosingDeveloper.value = false;
   } else {
     // Showing noti for developer is not selected
     showNoti('Please select a developer.', 'error');
@@ -267,6 +266,10 @@ onMounted(async () => {
 
   // The list of criteria, call from DB once backend done
   loadingCriteria.value = true;
+
+  // Getting all the developers
+  allDevelopers.value = await get('BuildingBenchmark/GetAllDevelopers');
+  allDevelopers.value.forEach(d => d.value = d.developer_name);
 
   // Build and connect to signalr
   if (!signalHub.value) {
