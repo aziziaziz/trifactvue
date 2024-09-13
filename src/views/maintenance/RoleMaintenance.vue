@@ -1,5 +1,5 @@
 <template>
-  <Loader v-if="loadingRole" text="Loading Roles" />
+  <Loader v-if="loadingRole" :text="loadingRoleText" />
   <div v-else class="role-main">
     <div>You may add, edit or delete role from below list</div>
     <Button class="add-role-button" theme="submit" @click="addRoleClicked">Add Role</Button>
@@ -45,11 +45,12 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { get, post } from '../../js/apiCall';
-import { showNoti } from '../../js/helper';
+import { get, httpDelete, post } from '../../js/apiCall';
+import { question, showNoti } from '../../js/helper';
 
 //#region Data
 const loadingRole = ref(false); // When loading the role
+const loadingRoleText = ref(''); // The text to show when loading
 const roleListing = ref([]); // The list of the available roles
 const addRolePopup = ref(false); // To show or hide the add role popup
 const roleListingCheckbox = ref([]); // The listing for the checkbox
@@ -114,22 +115,28 @@ const saveNewRoleClicked = async () => {
   // Checking the result
   if (insertResult) {
     showNoti('Successfully inserted a new role', 'success');
+    addRolePopup.value = false;
     await getAllRoles();
   } else {
     showNoti('There was an error occurred when inserting new role. Please try again.', 'error');
   }
 }
 const getAllRoles = async () => {
+  // Clear all the roles
+  roleListing.value = [];
+
   // Getting all the roles
   loadingRole.value = true;
+  loadingRoleText.value = 'Loading Roles';
   roleListing.value = await get('Role/GetAllRoles');
+
   // To show the allowed create premission in text not in ID
   roleListing.value.forEach(r => {
     let allowedCreate = r.create_role_permission;
     if (allowedCreate) {
       // To split in comma and get the desc back from role listing
       allowedCreate = allowedCreate.split(',');
-      r.create_permission_desc = allowedCreate.map(a => roleListing.value.find(l => l.role_id == a)?.role_desc);
+      r.create_permission_desc = allowedCreate.map(a => roleListing.value.find(l => l.role_id == a)?.role_desc).filter(r => r);
     } else {
       // To show that role not allowed to create
       r.create_permission_desc = [];
@@ -138,7 +145,27 @@ const getAllRoles = async () => {
   loadingRole.value = false;
 }
 const deleteRoleClicked = async (role) => {
-  console.log(role);
+  // Ask user if they confirm want to delete
+  let confirmDelete = await question('Delete Role', `Are you sure you want to delete ${role.role_desc} role?`, 'Delete', 'Cancel', true);
+
+  // Check for the user selection
+  if (confirmDelete == 'Delete') {
+    // Show the loading
+    loadingRoleText.value = 'Deleting Role';
+    loadingRole.value = true;
+
+    // Delete the role
+    let deleteResult = await httpDelete(`Role/DeleteRole?roleId=${role.role_id}`);
+    loadingRole.value = false;
+
+    // Check for the deletion status
+    if (deleteResult) {
+      showNoti('Successfully deleted the role');
+      await getAllRoles();
+    } else {
+      showNoti('There was an error occurred while deleting the role. Please try again', 'error');
+    }
+  }
 }
 //#endregion Methods
 
