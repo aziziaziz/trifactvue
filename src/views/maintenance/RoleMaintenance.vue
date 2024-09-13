@@ -10,19 +10,27 @@
         <div v-if="role.create_permission_desc.length > 0">Allowed to create: {{ role.create_permission_desc.join(', ') }}</div>
         <div v-else>Not allowed to create any user</div>
       </div>
-      <Button class="role-delete-button" theme="danger">Delete</Button>
+      <Button class="role-delete-button" theme="danger" @click="deleteRoleClicked(role)">Delete</Button>
     </div>
 
     <Popup :show="addRolePopup">
       <template v-slot:header>Add New Role</template>
       <template v-slot:content>
         <div class="add-role-container">
+          <FormInput placeholder="Role ID" v-model:value="newRoleId" />
           <FormInput placeholder="Role Name" v-model:value="newRoleName" />
-          <div>Role that allowed to create this role</div>
+          <div>Role that are allowed to create <b>{{ newRoleName }}</b> :</div>
           <div class="allowed-role-checkbox">
             <div class="role-checkbox-item" v-for="(role,roleInd) in roleListingCheckbox" :key="roleInd">
-              <input type="checkbox" :id="`role_checkbox_${roleInd}`" v-model="role.isChecked">
-              <label :for="`role_checkbox_${roleInd}`">{{ role.role_desc }}</label>
+              <input type="checkbox" :id="`role_create_${roleInd}`" v-model="role.createChecked">
+              <label :for="`role_create_${roleInd}`">{{ role.role_desc }}</label>
+            </div>
+          </div>
+          <div>Role that <b>{{ newRoleName }}</b> are allowed to create :</div>
+          <div class="allowed-role-checkbox">
+            <div class="role-checkbox-item" v-for="(role,roleInd) in roleListingCheckbox" :key="roleInd">
+              <input type="checkbox" :id="`role_to_create${roleInd}`" v-model="role.toCreateChecked">
+              <label :for="`role_to_create${roleInd}`">{{ role.role_desc }}</label>
             </div>
           </div>
         </div>
@@ -46,6 +54,7 @@ const roleListing = ref([]); // The list of the available roles
 const addRolePopup = ref(false); // To show or hide the add role popup
 const roleListingCheckbox = ref([]); // The listing for the checkbox
 const newRoleName = ref(''); // The new role name to add
+const newRoleId = ref(''); // The new role id to save
 const savingNewRole = ref(false); // The loading when saving new role
 //#endregion Data
 
@@ -56,13 +65,27 @@ const addRoleClicked = async () => {
 
   // Setting the checkbox listing
   roleListingCheckbox.value = JSON.parse(JSON.stringify(roleListing.value));
-  roleListingCheckbox.value.forEach(r => r.isChecked = false);
+  roleListingCheckbox.value.forEach(r => {
+    r.createChecked = false;
+    r.toCreateChecked = false;
+  });
 
   // Showing the popup
   addRolePopup.value = true;
 }
 const saveNewRoleClicked = async () => {
   // Checking compulsory field
+  if (!newRoleId.value) {
+    showNoti('Please enter the role ID', 'error');
+    return;
+  } else {
+    // Check role id contains non digit character
+    let nonDigit = newRoleId.value.match(/\D+/g);
+    if (nonDigit) {
+      showNoti('Please enter number only for the role ID', 'error');
+      return;
+    }
+  }
   if (!newRoleName.value) {
     showNoti('Please enter the role name', 'error');
     return;
@@ -70,9 +93,17 @@ const saveNewRoleClicked = async () => {
 
   // Preparing the obj to post
   let roleToSave = {
+    role_id: newRoleId.value,
     role_desc: newRoleName.value,
     is_active: true,
-    create_role_permission: roleListingCheckbox.value.filter(rc => rc.isChecked).map(rc => rc.role_id).join(',') || null
+    create_role_permission: roleListingCheckbox.value.filter(rc => rc.toCreateChecked).map(rc => rc.role_id).join(',') || null,
+    who_can_create: roleListingCheckbox.value.filter(rc => rc.createChecked).map(rc => rc.role_id).join(',') || null,
+  };
+
+  // Checking for the who can create this role
+  if (roleToSave.who_can_create == null) {
+    showNoti(`At least 1 role has to be allowed to create ${newRoleName.value}`, 'error');
+    return;
   }
   
   // Calling the API to save
@@ -98,13 +129,16 @@ const getAllRoles = async () => {
     if (allowedCreate) {
       // To split in comma and get the desc back from role listing
       allowedCreate = allowedCreate.split(',');
-      r.create_permission_desc = allowedCreate.map(a => roleListing.value.find(l => l.role_id == a).role_desc);
+      r.create_permission_desc = allowedCreate.map(a => roleListing.value.find(l => l.role_id == a)?.role_desc);
     } else {
       // To show that role not allowed to create
       r.create_permission_desc = [];
     }
   });
   loadingRole.value = false;
+}
+const deleteRoleClicked = async (role) => {
+  console.log(role);
 }
 //#endregion Methods
 
