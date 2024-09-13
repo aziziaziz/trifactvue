@@ -32,8 +32,8 @@
           <tr>
             <th colspan="2">
               <div class="developer-table-name">
-                <div>{{ dev.developerName }}</div>
-                <img class="developer-delete" src="../../assets/delete.png" @click="developerDeleteClicked(devInd)" alt="">
+                <div>{{ dev.developer.developer_name }}</div>
+                <img class="developer-delete" src="../../assets/delete.png" @click="developerDeleteClicked(dev)" alt="">
               </div>
             </th>
           </tr>
@@ -53,7 +53,7 @@
         <Button @click="confirmDeveloperClicked" :loading="choosingDeveloper">Choose Developer</Button>
       </div>
 
-      <Button v-if="currentDeveloper.length < 3" class="add-developer-button" @click="chooseDeveloperClicked">+</Button>
+      <Button v-if="currentDeveloper.length < 5 && allDevelopers.length > 0" class="add-developer-button" @click="chooseDeveloperClicked">+</Button>
     </div>
   </div>
 
@@ -114,7 +114,7 @@ const signalHub = ref(null); // The connection to the signalR
 const showChooseDeveloper = ref(false); // This is when the dropdown for the developer is shown
 const selectedDeveloper = ref(null); // The selected developer
 const currentDeveloper = ref([]);
-const allDevelopers = ref(); // The list of all the developers
+const allDevelopers = ref([]); // The list of all the developers
 const choosingDeveloper = ref(false); // Loading when getting the developer details
 //#endregion Data
 
@@ -233,12 +233,18 @@ const confirmDeveloperClicked = async () => {
 
     // Formatting the object
     let objToAdd = {
-      developerName: selectedDeveloper.value.value,
+      developer: selectedDeveloper.value,
       criterias: developerDetails
     };
 
     // Push into the current developer list
     currentDeveloper.value.push(objToAdd);
+
+    // Removing the selected from the list of all developers
+    let selectedIndex = allDevelopers.value.findIndex(d => d.developer_uid == selectedDeveloper.value.developer_uid);
+    if (selectedIndex >= 0) {
+      allDevelopers.value.splice(selectedIndex, 1);
+    }
 
     // Clear the dropdown
     selectedDeveloper.value = null;
@@ -250,9 +256,16 @@ const confirmDeveloperClicked = async () => {
     showNoti('Please select a developer.', 'error');
   }
 }
-const developerDeleteClicked = (ind) => {
-  // Delete at the index
-  currentDeveloper.value.splice(ind, 1);
+const developerDeleteClicked = (dev) => {
+  // Get the index of the deleted developer
+  let devInd = currentDeveloper.value.findIndex(d => d.developer.developer_uid == dev.developer.developer_uid);
+
+  if (devInd >= 0) {
+    // Insert back into all the developers
+    allDevelopers.value.push(currentDeveloper.value[devInd].developer);
+    // Removed from the current developer list
+    currentDeveloper.value.splice(devInd, 1);
+  }
 }
 //#endregion Methods
 
