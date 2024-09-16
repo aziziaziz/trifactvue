@@ -40,6 +40,9 @@ const dropdownSelectEl = ref(null); // The container element for the dropdown el
 const dropdownItemHover = ref(false); // When hovering on the item to make sure that the item is clickable
 const dropdownPositionSet = ref('unset'); // To set the dropdown position either top or bottom based on the screen height
 const selectedObject = ref(null); // Private selected object, bind to selected props
+
+const searchText = ref(''); // The text that the user is searching
+const searchTimeout = ref(null); // The timeout of the searching
 //#endregion Data
 
 //#region Methods
@@ -86,6 +89,39 @@ const dropdownKeydown = async (e) => {
     if (showDropdown.value) {
       highlightDropdownItem(currentObjectIndex);
     }
+  } else if (e.key.length == 1) {
+    // Setting the search text
+    searchText.value += e.key;
+    
+    // Clear the timeout
+    if (searchTimeout.value) {
+      clearTimeout(searchTimeout.value);
+    }
+
+    // Set the timeout
+    searchTimeout.value = setTimeout(() => {
+      // Find the search text in the list
+      let searchResult = props.items.find(i => {
+        let regex = new RegExp(`^${searchText.value}`, 'gi');
+        let match = i.value.match(regex);
+
+        return match;
+      });
+
+      // Found result in the search result
+      if (searchResult) {
+        selectedObject.value = searchResult;
+        // Move the selected item in the dropdown if shown
+        if (showDropdown.value) {
+          highlightDropdownItem();
+        }
+      }
+      // console.log('Search ended for ', searchText.value);
+      
+      // Clear the search
+      searchText.value = '';
+      clearTimeout(searchTimeout.value);
+    }, 500);
   }
 }
 const dropdownClicked = async () => {
