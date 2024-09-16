@@ -2,13 +2,23 @@
   <div class="home-container">
     <Button theme="submit" class="add-space-button" @click="addClientClicked" :disabled="store.state.spaceListing.length == 0">Add Client</Button>
     <Input placeholder="Search Client" />
-    <div v-if="store.state.currentClient" class="space-details">
+    <!-- <div v-if="store.state.currentClient" class="space-details">
       <div class="space-title">✓ {{ store.state.currentClient.client_name }}</div>
-    </div>
-    <hr style="width: 100%">
+    </div> -->
+    <!-- <hr style="width: 100%"> -->
     <div v-if="allClients.length > 0" class="space-container">
-      <div class="space-details" v-for="(loc, locInd) in allClients" :key="locInd" @click="clientDetailsClicked(locInd)">
-        <div class="space-title">{{ loc.client_name }}</div>
+      <div class="space-details" v-for="(client,clientInd) in allClients" :key="clientInd">
+        <div class="space-title">
+          <img src="../../assets/dropdown/dropdown.png">
+          <div @click="client.show = !client.show">{{ client.name }}</div>
+          <Button @click="addProjectClick(client)">Add Project</Button>
+        </div>
+        <div class="space-project-details" ref="projectsElement" v-if="client.show">
+          <div class="space-details" v-for="(proj,projInd) in client.projects" :key="projInd">
+            <div>{{ proj.project_location }}, {{ proj.country }}</div>
+            <div>{{ proj.project_desc }}</div>
+          </div>
+        </div>
       </div>
     </div>
     <Loader v-else-if="clientLoading" text="Loading Clients" />
@@ -57,25 +67,26 @@ const selectedCurrency = ref(null); // The selected currency
 const unitList = ref([]); // The list of availale units
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
 const savingClient = ref(false); // To show loading when saving the client
+const projectsElement = ref(null); // The element reference to the projects for each of the clients
 //#endregion Data
 
 //#region Methods
-const clientDetailsClicked = async (ind) => {
-  // Check if currently client is selected and if it is, the need to add back into the client list
-  if (localStorage.getItem('client')) {
-    allClients.value.splice(ind, 0, JSON.parse(localStorage.getItem('client')));
-    ind++;
-  }
+// const clientDetailsClicked = async (ind) => {
+//   // Check if currently client is selected and if it is, the need to add back into the client list
+//   if (localStorage.getItem('client')) {
+//     allClients.value.splice(ind, 0, JSON.parse(localStorage.getItem('client')));
+//     ind++;
+//   }
 
-  // Get the client based on the index
-  let client = allClients.value[ind];
-  // Assign the client to the store and save in the localstorage
-  store.state.currentClient = client;
-  localStorage.setItem('client', JSON.stringify(client));
+//   // Get the client based on the index
+//   let client = allClients.value[ind];
+//   // Assign the client to the store and save in the localstorage
+//   store.state.currentClient = client;
+//   localStorage.setItem('client', JSON.stringify(client));
 
-  // Remove the client from the full list and make it show at the top
-  allClients.value.splice(ind, 1);
-}
+//   // Remove the client from the full list and make it show at the top
+//   allClients.value.splice(ind, 1);
+// }
 const addClientClicked = () => { // When adding a new client
   // Reset value to default
   resetFields();
@@ -144,16 +155,27 @@ const getAllClients = async () => {
   allClients.value = await get('Client/GetAllClient');
   clientLoading.value = false;
 
-  // Checking if there is a client that is already selected
-  if (localStorage.getItem('client')) {
-    // Parse the client string from localstorage to object
-    let savedClient = JSON.parse(localStorage.getItem('client'));
+  // Getting the unique client name
+  let clientNames = [...new Set(allClients.value.map(c => c.client_name))];
+  // Grouping the clients
+  allClients.value = clientNames.map(n => {
+    return {
+      name: n,
+      show: true,
+      projects: allClients.value.filter(c => c.client_name == n)
+    }
+  });
 
-    // Get the index based on id
-    let ind = allClients.value.findIndex(c => c.client_uid == savedClient.client_uid);
-    // Remove from the main list
-    allClients.value.splice(ind, 1);
-  }
+  // // Checking if there is a client that is already selected
+  // if (localStorage.getItem('client')) {
+  //   // Parse the client string from localstorage to object
+  //   let savedClient = JSON.parse(localStorage.getItem('client'));
+
+  //   // Get the index based on id
+  //   let ind = allClients.value.findIndex(c => c.client_uid == savedClient.client_uid);
+  //   // Remove from the main list
+  //   allClients.value.splice(ind, 1);
+  // }
 }
 const compulsoryFieldChecking = () => {
   let pass = true;
@@ -187,6 +209,10 @@ const resetFields = () => {
   selectedCurrency.value = null;
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
 }
+const addProjectClick = (client) => {
+  console.log(client);
+  showNoti('Add project is still in progress.', 'warning');
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -209,6 +235,7 @@ onMounted(async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  row-gap: 5px;
 }
 .add-space-button {
   width: fit-content;
@@ -226,7 +253,6 @@ onMounted(async () => {
   border: 1px solid gray;
   border-radius: 10px;
   padding: 10px;
-  cursor: pointer;
 }
 .space-details:not(:first-child) {
   margin-top: 10px;
@@ -234,6 +260,22 @@ onMounted(async () => {
 .space-title {
   font-size: 1.2em;
   font-weight: bold;
+  display: flex;
+  column-gap: 5px;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.space-title > :first-child {
+  height: 0.5em;
+}
+.space-title > div {
+  width: 100%;
+}
+.space-title > Button {
+  width: fit-content;
+  white-space: nowrap;
+  font-size: 0.5em;
 }
 .space-description-container {
   align-items: center;
@@ -253,5 +295,8 @@ onMounted(async () => {
 }
 .popup-button-section > Button {
   max-width: 150px;
+}
+.space-project-details {
+  margin-top: 5px;
 }
 </style>
