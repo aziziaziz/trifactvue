@@ -121,7 +121,7 @@ const dropdownKeydown = async (e) => {
       // Clear the search
       searchText.value = '';
       clearTimeout(searchTimeout.value);
-    }, 500);
+    }, 250);
   }
 }
 const dropdownClicked = async () => {
