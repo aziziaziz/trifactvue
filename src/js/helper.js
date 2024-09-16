@@ -210,4 +210,7 @@ export const logout = () => {
   localStorage.removeItem('refresh');
   localStorage.removeItem('userid');
   localStorage.removeItem('role');
+
+  // Clearing from the store
+  store.state.currentClient = '';
 }
