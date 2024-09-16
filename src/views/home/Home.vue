@@ -17,7 +17,11 @@
       <template v-slot:header>Add Client</template>
       <template v-slot:content>
         <div class="popup-content-container">
-          <FormInput placeholder="Client name" v-model:value="clientName" :isRequired="true" v-model:errorMessage="clientNameError" />
+          <FormInput placeholder="Client name" v-model:value="clientName" />
+          <Dropdown placeholder="Country" :items="countryListing" v-model:selected="selectedCountry" />
+          <FormInput placeholder="Project Location" v-model:value="projectLocation" />
+          <FormInput placeholder="Project Description" v-model:value="projectDescription" />
+          <Dropdown placeholder="Local Currency" :items="currencyListing" position="top" v-model:selected="selectedCurrency" />
           <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
         </div>
       </template>
@@ -35,6 +39,7 @@
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { get, post } from '../../js/apiCall';
+import { showNoti } from '../../js/helper';
 
 const store = useStore();
 
@@ -43,9 +48,14 @@ const allClients = ref([]); // The spaces that are available for the user
 const clientLoading = ref(false); // Used to show the loading when loading the client from DB
 const showAddClientPopup = ref(false); // Use to show the popup to add client
 const clientName = ref(''); // Used when adding a new client
-const clientNameError = ref(''); // Used to show the error of the client name
-const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
+const projectDescription = ref(''); // The description of the project
+const projectLocation = ref(''); // The location of the project
+const countryListing = ref([]); // The list of all the countries
+const selectedCountry = ref(null); // The selected country
+const currencyListing = ref([]); // Tje list of all the currencies
+const selectedCurrency = ref(null); // The selected currency
 const unitList = ref([]); // The list of availale units
+const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
 const savingClient = ref(false); // To show loading when saving the client
 //#endregion Data
 
@@ -67,27 +77,27 @@ const clientDetailsClicked = async (ind) => {
   allClients.value.splice(ind, 1);
 }
 const addClientClicked = () => { // When adding a new client
-  // Reset the values to default
-  clientName.value = '';
-  clientNameError.value = '';
-  selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
+  // Reset value to default
+  resetFields();
 
   // To show the popup
   showAddClientPopup.value = true;
 }
 const saveClientClicked = async () => { // When a new client is saved
-  // Checking if the client name is empty
-  if (!clientName.value) {
-    // Show the error message
-    clientNameError.value = 'Client Name is required!';
-    // Stop the method from going further
+  // Stops the method if one or more fields is not selected/filled in
+  if (!compulsoryFieldChecking()) {
     return;
   }
 
   // Saving to DB
   let saveObj = {
     client_name: clientName.value,
-    sqm_sqft: selectedUnit.value.acronym
+    country: selectedCountry.value.code,
+    project_location: projectLocation.value,
+    project_desc: projectDescription.value,
+    local_ccy: selectedCurrency.value.currency_code,
+    sqm_sqft: selectedUnit.value.acronym,
+    created_by: localStorage.getItem('user')
   };
   savingClient.value = true;
   let saveClient = await post('Client/InsertClient', saveObj);
@@ -115,11 +125,14 @@ const saveClientClicked = async () => { // When a new client is saved
     
     // Close the popup
     showAddClientPopup.value = false;
+    
+    // Show noti
+    showNoti('Successfully created a new client', 'success');
   
     // Gett all clients from the DB
     getAllClients();
   } else { // If saving the client failed
-    console.error('Failed to save the client');
+    showNoti('There was an error occured while creating new client.', 'error');
   }
 }
 const getAllClients = async () => {
@@ -142,6 +155,38 @@ const getAllClients = async () => {
     allClients.value.splice(ind, 1);
   }
 }
+const compulsoryFieldChecking = () => {
+  let pass = true;
+
+  // Checking for all the compulsory fields
+  if (!clientName.value) {
+    showNoti('Client name cannot be empty', 'error');
+    pass = false;
+  } else if (!selectedCountry.value) {
+    showNoti(`Country needs to be selected`, 'error');
+    pass = false;
+  } else if (!projectLocation.value) {
+    showNoti('Project location cannot be empty', 'error');
+    pass = false;
+  } else if (!projectDescription.value) {
+    showNoti('Project description cannot be empty', 'error');
+    pass = false;
+  } else if (!selectedCurrency.value) {
+    showNoti('Currency needs to be selected', 'error');
+    pass = false;
+  }
+
+  return pass;
+}
+const resetFields = () => {
+  // Reset the values to default
+  clientName.value = '';
+  selectedCountry.value = null;
+  projectLocation.value = '';
+  projectDescription.value = '';
+  selectedCurrency.value = null;
+  selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -149,7 +194,11 @@ onMounted(async () => {
   unitList.value = store.state.unitListing;
 
   // Getting the clients from the DB
-  getAllClients();
+  await getAllClients();
+
+  // Populating the countries and currencies from store
+  countryListing.value = store.state.countryListing;
+  currencyListing.value = store.state.currencyListing;
 });
 //#endregion Lifecycle
 </script>
