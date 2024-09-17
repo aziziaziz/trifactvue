@@ -18,7 +18,7 @@
           </Transition>
         </div>
         <img class="menu-small-logo" src="../../assets/logo.png" alt="" @click="companyLogoClicked">
-        <div v-if="store.state.currentClient">{{ displayLabel ? `${displayLabel}: ${store.state.currentClient.client_name}` : pageName }}</div>
+        <div v-if="store.state.currentClient">{{ displayLabel ? `${displayLabel}: ${store.state.currentClient.client_name} - ${store.state.currentClient.project_location}` : pageName }}</div>
         <div class="horizontal-spacer"></div>
         <div class="wide-username">{{ username }}</div>
         <div class="top-right-user-section" @click="showUserSection = !showUserSection">
