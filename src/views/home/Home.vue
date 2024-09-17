@@ -11,10 +11,10 @@
         <div class="space-title">
           <img src="../../assets/dropdown/dropdown.png">
           <div @click="client.show = !client.show">{{ client.name }}</div>
-          <Button @click="addProjectClick(client)">Add Project</Button>
+          <!-- <Button @click="addProjectClick(client)">Add Project</Button> -->
         </div>
         <div class="space-project-details" ref="projectsElement" v-if="client.show">
-          <div class="space-details" v-for="(proj,projInd) in client.projects" :key="projInd">
+          <div class="space-details project-details" v-for="(proj,projInd) in client.projects" :key="projInd" @click="projectClicked(proj)">
             <div>{{ proj.project_location }}, {{ proj.country }}</div>
             <div>{{ proj.project_desc }}</div>
           </div>
@@ -209,9 +209,14 @@ const resetFields = () => {
   selectedCurrency.value = null;
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
 }
-const addProjectClick = (client) => {
-  console.log(client);
-  showNoti('Add project is still in progress.', 'warning');
+// const addProjectClick = (client) => {
+//   console.log(client);
+//   showNoti('Add project is still in progress.', 'warning');
+// }
+const projectClicked = (proj) => {
+  // Assign the client to the store and save in the localstorage
+  store.state.currentClient = proj;
+  localStorage.setItem('client', JSON.stringify(proj));
 }
 //#endregion Methods
 
@@ -298,5 +303,8 @@ onMounted(async () => {
 }
 .space-project-details {
   margin-top: 5px;
+}
+.project-details {
+  cursor: pointer;
 }
 </style>
