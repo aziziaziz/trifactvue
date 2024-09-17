@@ -15,7 +15,7 @@
         </div>
         <div class="space-project-details" ref="projectsElement" v-if="client.show">
           <div class="space-details project-details" v-for="(proj,projInd) in client.projects" :key="projInd" @click="projectClicked(proj)">
-            <div>{{ proj.project_location }}, {{ proj.country }}</div>
+            <div>{{ store.state.currentClient ? (store.state.currentClient.client_uid == proj.client_uid ? '✓' : '') : '' }} {{ proj.project_location }}, {{ proj.country }}</div>
             <div>{{ proj.project_desc }}</div>
           </div>
         </div>
