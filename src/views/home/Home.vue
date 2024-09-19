@@ -9,12 +9,16 @@
     <div v-if="allClients.length > 0" class="space-container">
       <div class="space-details" v-for="(client,clientInd) in allClients" :key="clientInd">
         <div class="space-title">
-          <img src="../../assets/dropdown/dropdown.png">
-          <div @click="client.show = !client.show">{{ client.name }}</div>
+          <div>{{ client.client_name }}</div>
           <!-- <Button @click="addProjectClick(client)">Add Project</Button> -->
         </div>
+        <div class="space-title space-sub-title">
+          <img src="../../assets/dropdown/dropdown.png" :style="{ transform: `scaleY(${client.show ? '-1' : '1'})` }">
+          <div @click="showClientsProjects(client)">Project Count: {{ client.project_count }}</div>
+        </div>
         <div class="space-project-details" ref="projectsElement" v-if="client.show">
-          <div class="space-details project-details" v-for="(proj,projInd) in client.projects" :key="projInd" @click="projectClicked(proj)">
+          <Loader text="Loading Client" v-if="client.loadingProjects" />
+          <div v-else class="space-details project-details" v-for="(proj,projInd) in client.projects" :key="projInd" @click="projectClicked(proj)">
             <div>{{ store.state.currentClient ? (store.state.currentClient.client_uid == proj.client_uid ? '✓' : '') : '' }} {{ proj.project_location }}, {{ proj.country }}</div>
             <div>{{ proj.project_desc }}</div>
           </div>
@@ -152,19 +156,26 @@ const getAllClients = async () => {
 
   // Getting all the clients from the DB
   clientLoading.value = true;
-  allClients.value = await get('Client/GetAllClient');
+  allClients.value = await get('Client/GetAllClientsName');
   clientLoading.value = false;
 
-  // Getting the unique client name
-  let clientNames = [...new Set(allClients.value.map(c => c.client_name))];
-  // Grouping the clients
-  allClients.value = clientNames.map(n => {
-    return {
-      name: n,
-      show: true,
-      projects: allClients.value.filter(c => c.client_name == n)
-    }
+  // Set the additional keys for the clients object
+  allClients.value.forEach(c => {
+    c.projects = [];
+    c.loadingProjects = false;
+    c.show = false;
   });
+
+  // // Getting the unique client name
+  // let clientNames = [...new Set(allClients.value.map(c => c.client_name))];
+  // // Grouping the clients
+  // allClients.value = clientNames.map(n => {
+  //   return {
+  //     name: n,
+  //     show: true,
+  //     projects: allClients.value.filter(c => c.client_name == n)
+  //   }
+  // });
 
   // // Checking if there is a client that is already selected
   // if (localStorage.getItem('client')) {
@@ -218,6 +229,20 @@ const projectClicked = (proj) => {
   store.state.currentClient = proj;
   localStorage.setItem('client', JSON.stringify(proj));
 }
+const showClientsProjects = async (client) => {
+  // Switch the show key to true or false
+  client.show = !client.show;
+
+  // Check if to show the projects
+  if (client.show) {
+    // Checking if the project is empty
+    if (client.projects.length == 0) {
+      client.loadingProjects = true;
+      client.projects = await get(`Client/GetAllClientsByName?name=${client.client_name}`);
+      client.loadingProjects = false;
+    }
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -258,6 +283,7 @@ onMounted(async () => {
   border: 1px solid gray;
   border-radius: 10px;
   padding: 10px;
+  row-gap: 5px;
 }
 .space-details:not(:first-child) {
   margin-top: 10px;
@@ -268,11 +294,7 @@ onMounted(async () => {
   display: flex;
   column-gap: 5px;
   align-items: center;
-  cursor: pointer;
   user-select: none;
-}
-.space-title > :first-child {
-  height: 0.5em;
 }
 .space-title > div {
   width: 100%;
@@ -306,5 +328,12 @@ onMounted(async () => {
 }
 .project-details {
   cursor: pointer;
+}
+.space-sub-title {
+  font-size: 1em;
+  cursor: pointer;
+}
+.space-sub-title > :first-child {
+  height: 0.5em;
 }
 </style>
