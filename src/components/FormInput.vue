@@ -2,7 +2,7 @@
 	<div :class="[ 'input-main', { 'input-disabled': disabled } ]">
 		<div class="input-label">{{ props.placeholder }} <span v-if="isRequired" class="error-text">**</span></div>
 		<input :class="[{ 'input-box-error': errorMessage }, 'input-box']" type="text" v-model="inputValue" @input="userInput"
-			@keydown="inputKeyDown" :disabled="disabled">
+			@keydown="inputKeyDown" :disabled="disabled" @blur="inputFocusOut">
 		<div v-if="errorMessage" class="error-text">{{ errorMessage }}</div>
 	</div>
 </template>
@@ -20,7 +20,8 @@ const props = defineProps({
 const emit = defineEmits([
 	'update:value',
 	'update:errorMessage',
-	'enter'
+	'enter',
+	'focusOut'
 ])
 
 //#region Data
@@ -38,6 +39,9 @@ const inputKeyDown = (e) => {
   if (e.key == 'Enter') {
     emit('enter');
   }
+}
+const inputFocusOut = () => {
+	emit('focusOut');
 }
 //#endregion Method
 
