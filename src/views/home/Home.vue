@@ -31,7 +31,7 @@
       <template v-slot:header>Add Client</template>
       <template v-slot:content>
         <div class="popup-content-container">
-          <FormInput placeholder="Client name" v-model:value="clientName" />
+          <FormInput placeholder="Client name" v-model:value="clientName" @focusOut="clientNameBlur" />
           <Dropdown placeholder="Country" :items="countryListing" v-model:selected="selectedCountry" />
           <FormInput placeholder="Project Location" v-model:value="projectLocation" />
           <FormInput placeholder="Project Description" v-model:value="projectDescription" />
@@ -53,7 +53,7 @@
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { get, post } from '../../js/apiCall';
-import { showNoti } from '../../js/helper';
+import { popup, showNoti } from '../../js/helper';
 
 const store = useStore();
 
@@ -258,6 +258,17 @@ const showClientsProjects = async (client) => {
       client.projects = await get(`Client/GetAllClientsByName?name=${client.client_name}`);
       client.loadingProjects = false;
     }
+  }
+}
+const clientNameBlur = async () => {
+  // Get the details of the client name that newly entered
+  let projects = await get(`Client/GetAllClientsByName?name=${clientName.value}`);
+  // Check if the client name already exists
+  if (projects.length > 0) {
+    // Show a popup
+    popup('Client Exists', `Client ${clientName.value} already exists.\nYou are only allowed to add project for existing clients.`);
+    // Close the popup
+    showAddClientPopup.value = false;
   }
 }
 //#endregion Methods
