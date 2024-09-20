@@ -1,6 +1,6 @@
 <template>
   <Transition name="popup-trans" :duration="300">
-    <div v-if="show" :class="['popup-main', { 'popup-main-full': fullscreen }]">
+    <div v-if="show" :class="['popup-main', { 'popup-main-full': fullscreen }]" tabindex="0" ref="mainPopupEl">
       <div class="popup-background"></div>
       <div class="popup-container">
         <div class="popup-header">
@@ -19,13 +19,29 @@
 
 <script setup>
 /* eslint-disable */
-import { defineProps, watch } from 'vue';
+import { defineProps, nextTick, ref, watch } from 'vue';
 
 const props = defineProps({
   show: { type: Boolean, default: false }, // To show or hide the popup
   fullscreen: { type: Boolean, default: false }, // To make sure that the popup fills the entire screen, must be false if in home route
   align: { type: String, default: 'left' }, // To align the content of the popup. Possible [left, center, right]
 });
+
+//#region Data
+const mainPopupEl = ref(null); // The element of the main popup element
+//#endregion Data
+
+//#region Watchers
+watch(() => props.show, (val) => {
+  // Check if the show is set to trie
+  if (val) {
+    // Make sure tha the value loaded first
+    nextTick(() => {
+      mainPopupEl.value.focus();
+    });
+  }
+})
+//#endregion Watchers
 </script>
 
 <style scoped>
