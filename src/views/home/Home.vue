@@ -166,6 +166,23 @@ const getAllClients = async () => {
     c.show = false;
   });
 
+  // Checking if there is a current selected client
+  if (store.state.currentClient) {
+    // Get the selected client object
+    let selectedClient = allClients.value.filter(c => c.client_name == store.state.currentClient.client_name);
+    // Get all the clients besides the one selected
+    let notSelectedClient = allClients.value.filter(c => c.client_name != store.state.currentClient.client_name);
+
+    // Checking if there is any selected client within the list
+    if (selectedClient.length > 0) {
+      // Auto load the projects for the current selected client
+      showClientsProjects(selectedClient[0]);
+    }
+    
+    // Put the selected client at the top of the list
+    allClients.value = [ ...selectedClient, ...notSelectedClient ];
+  }
+
   // // Getting the unique client name
   // let clientNames = [...new Set(allClients.value.map(c => c.client_name))];
   // // Grouping the clients
