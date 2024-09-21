@@ -1,7 +1,7 @@
 <template>
-  <div class="dropdown-main">
+  <div class="dropdown-main" :style="{ opacity: disabled ? '0.6' : '1' }">
     <div class="dropdown-label">{{ placeholder }}</div>
-    <div class="dropdown-container" tabindex="0" @keydown="dropdownKeydown" @click="dropdownClicked" @blur="dropdownFocusOut" ref="dropdownContainerEl">
+    <div class="dropdown-container" :tabindex="disabled ? '-1' : '0'" @keydown="dropdownKeydown" @click="dropdownClicked" @blur="dropdownFocusOut" ref="dropdownContainerEl">
       <div v-if="selectedObject">{{ selectedObject.value }}</div>
       <div v-else class="dropdown-placeholder">Please Select</div>
       
@@ -12,6 +12,8 @@
       <div v-for="(item,ind) in items" :key="ind" class="dropdown-item" @click="itemClicked(item)" @mouseenter="dropdownItemHover = true" @mouseleave="dropdownItemHover = false"
         ref="dropdownItemEl">{{ item.value }}</div>
     </div>
+
+    <div class="disabled-container" v-if="disabled"></div>
   </div>
 </template>
 
@@ -27,6 +29,7 @@ const props = defineProps({
   selected: Object, // The value of the selected object in the dropdown [2WB]
   placeholder: { type: String, default: "Label" }, // To assign the value of the placeholder/label
   position: String, // To default the position of the dropdown. Possible value [bottom, top]
+  disabled: { type: Boolean, default: false }, // To make the dropdown as disabled
 });
 const emit = defineEmits([
   'update:selected', // To handle 2 way binding for the selected when selectedObject changes
@@ -242,5 +245,12 @@ watch(() => props.selected, (val) => {
   max-height: 20px;
   position: absolute;
   right: 10px;
+}
+.disabled-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
 }
 </style>
