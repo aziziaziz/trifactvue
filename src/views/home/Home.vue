@@ -18,9 +18,12 @@
         </div>
         <div class="space-project-details" ref="projectsElement" v-if="client.show">
           <Loader text="Loading Client" v-if="client.loadingProjects" />
-          <div v-else class="space-details project-details" v-for="(proj,projInd) in client.projects" :key="projInd" @click="projectClicked(proj)">
-            <div>{{ store.state.currentClient ? (store.state.currentClient.client_uid == proj.client_uid ? '✓' : '') : '' }} {{ proj.project_location }}, {{ proj.country }}</div>
-            <div>{{ proj.project_desc }}</div>
+          <div v-else class="space-details project-details" v-for="(proj,projInd) in client.projects" :key="projInd">
+            <div @click="projectClicked(proj)">
+              <div>{{ store.state.currentClient ? (store.state.currentClient.client_uid == proj.client_uid ? '✓' : '') : '' }} {{ proj.project_location }}, {{ proj.country }}</div>
+              <div>{{ proj.project_desc }}</div>
+            </div>
+            <Button theme="warning" @click="editProjectClicked(proj)">Edit</Button>
           </div>
         </div>
       </div>
@@ -28,12 +31,12 @@
     <Loader v-else-if="clientLoading" text="Loading Clients" />
 
     <Popup v-model:show="showAddClientPopup" @enter="saveClientClicked">
-      <template v-slot:header>Add Client</template>
+      <template v-slot:header>{{ inEditMode ? 'Edit' : 'Add' }} Client</template>
       <template v-slot:content>
         <div class="popup-content-container">
-          <FormInput placeholder="Client name" v-model:value="clientName" @focusOut="clientNameBlur" :disabled="isAddingProject" />
-          <Dropdown placeholder="Country" :items="countryListing" v-model:selected="selectedCountry" />
-          <FormInput placeholder="Project Location" v-model:value="projectLocation" />
+          <FormInput placeholder="Client name" v-model:value="clientName" @focusOut="clientNameBlur" :disabled="isAddingProject || inEditMode" />
+          <Dropdown placeholder="Country" :items="countryListing" v-model:selected="selectedCountry" :disabled="inEditMode" />
+          <FormInput placeholder="Project Location" v-model:value="projectLocation" :disabled="inEditMode" />
           <FormInput placeholder="Project Description" v-model:value="projectDescription" />
           <Dropdown placeholder="Local Currency" :items="currencyListing" position="top" v-model:selected="selectedCurrency" />
           <FormInput placeholder="Budget Contingency (%)" v-model:value="budgetContingency" />
@@ -42,7 +45,7 @@
       </template>
       <template v-slot:footer>
         <div class="popup-button-section">
-          <Button theme="submit" @click="saveClientClicked" :loading="savingClient">Save</Button>
+          <Button theme="submit" @click="saveClientClicked" :loading="savingClient">{{ inEditMode ? 'Update' : 'Save' }}</Button>
           <Button theme="danger" @click="showAddClientPopup = false">Cancel</Button>
         </div>
       </template>
@@ -53,7 +56,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
-import { get, post } from '../../js/apiCall';
+import { get, post, put } from '../../js/apiCall';
 import { popup, showNoti } from '../../js/helper';
 
 const store = useStore();
@@ -63,12 +66,14 @@ const allClients = ref([]); // The spaces that are available for the user
 const clientLoading = ref(false); // Used to show the loading when loading the client from DB
 const showAddClientPopup = ref(false); // Use to show the popup to add client
 const isAddingProject = ref(false); // Used when adding project for the client
+const inEditMode = ref(false); // To indicate the popup in edit mode
 const countryListing = ref([]); // The list of all the countries
 const currencyListing = ref([]); // Tje list of all the currencies
 const unitList = ref([]); // The list of availale units
 const savingClient = ref(false); // To show loading when saving the client
 const projectsElement = ref(null); // The element reference to the projects for each of the clients
 // For the popup model
+const editClientUID = ref(''); // Used to update the client
 const clientName = ref(''); // Used when adding a new client
 const selectedCountry = ref(null); // The selected country
 const projectLocation = ref(''); // The location of the project
@@ -115,44 +120,69 @@ const saveClientClicked = async () => { // When a new client is saved
     project_location: projectLocation.value,
     project_desc: projectDescription.value,
     local_ccy: selectedCurrency.value.currency_code,
-    budget_contingency: budgetContingency.value,
+    budget_contingency: Number(budgetContingency.value),
     sqm_sqft: selectedUnit.value.acronym,
     created_by: localStorage.getItem('user')
   };
   savingClient.value = true;
-  let saveClient = await post('Client/InsertClient', saveObj);
 
-  if (saveClient.success) { // If saving the client success
-    // Getting the first 3 of the spacelisting
-    let defaultSpace = store.state.spaceListing.slice(0, 3);
-
-    // Reformat to the value to post for the body
-    let spaceToAdd = defaultSpace.map(s => ({
-      client_uid: Number(saveClient.objectID),
-      space_uid: Number(s.space_uid),
-      sqm_sqft: selectedUnit.value.acronym,
-      description: s.space_description,
-      types: '',
-      number_ranking: 0,
-      space_count: 1,
-      total_area: selectedUnit.value.acronym == 'sqft' ? 30 : 10,
-      layout_selection: ''
-    }));
-    
-    // Saving the space requirements
-    await post(`Space/InsertSpaceRequirements?username=${localStorage.getItem('user')}`, spaceToAdd);
-    savingClient.value = false;
-    
-    // Close the popup
-    showAddClientPopup.value = false;
-    
-    // Show noti
-    showNoti('Successfully created a new client', 'success');
+  // Checking if in new or edit mode
+  if (!inEditMode.value) {
+    let saveClient = await post('Client/InsertClient', saveObj);
   
-    // Gett all clients from the DB
-    getAllClients();
-  } else { // If saving the client failed
-    showNoti('There was an error occured while creating new client.', 'error');
+    if (saveClient.success) { // If saving the client success
+      // Getting the first 3 of the spacelisting
+      let defaultSpace = store.state.spaceListing.slice(0, 3);
+  
+      // Reformat to the value to post for the body
+      let spaceToAdd = defaultSpace.map(s => ({
+        client_uid: Number(saveClient.objectID),
+        space_uid: Number(s.space_uid),
+        sqm_sqft: selectedUnit.value.acronym,
+        description: s.space_description,
+        types: '',
+        number_ranking: 0,
+        space_count: 1,
+        total_area: selectedUnit.value.acronym == 'sqft' ? 30 : 10,
+        layout_selection: ''
+      }));
+      
+      // Saving the space requirements
+      await post(`Space/InsertSpaceRequirements?username=${localStorage.getItem('user')}`, spaceToAdd);
+      savingClient.value = false;
+      
+      // Close the popup
+      showAddClientPopup.value = false;
+      
+      // Show noti
+      showNoti('Successfully created a new client', 'success');
+    
+      // Gett all clients from the DB
+      getAllClients();
+    } else { // If saving the client failed
+      savingClient.value = false;
+      showNoti('There was an error occured while creating new client.', 'error');
+    }
+  } else {
+    // Set the client uid
+    saveObj.client_uid = Number(editClientUID.value);
+
+    // Calling the API to update the client
+    let updateClient = await put('Client/UpdateClient', saveObj);
+    savingClient.value = false;
+
+    // Checking on the update result
+    if (updateClient) {
+      // Close the popup and show success noti
+      showAddClientPopup.value = false;
+      showNoti('Successfully updated your client', 'success');
+
+      // Get all the clients again
+      getAllClients();
+    } else {
+      // Show error noti
+      showNoti('There was an error occurred while updating your client', 'error');
+    }
   }
 }
 const getAllClients = async () => {
@@ -238,7 +268,7 @@ const compulsoryFieldChecking = () => {
   if (pass) {
     // Checking for the budget contingency value
     if (isNaN(Number(budgetContingency.value))) {
-      showNoti('Budget contingency must be a number');
+      showNoti('Budget contingency must be a number', 'error');
       pass = false;
     }
   }
@@ -247,6 +277,7 @@ const compulsoryFieldChecking = () => {
 }
 const resetFields = () => {
   // Reset the values to default
+  editClientUID .value = '';
   clientName.value = '';
   selectedCountry.value = null;
   projectLocation.value = '';
@@ -296,6 +327,24 @@ const clientNameBlur = async () => {
     // Close the popup
     showAddClientPopup.value = false;
   }
+}
+const editProjectClicked = (proj) => {
+  // Reset the fields and show the popup in edit mode
+  resetFields();
+  showAddClientPopup.value = true;
+  inEditMode.value = true;
+
+  // Set the project client uid
+  editClientUID.value = proj.client_uid;
+
+  // Populate the project values
+  clientName.value = proj.client_name;
+  selectedCountry.value = countryListing.value.find(c => c.code == proj.country);
+  projectLocation.value = proj.project_location;
+  projectDescription.value = proj.project_desc;
+  selectedCurrency.value = currencyListing.value.find(c => c.currency_code == proj.local_ccy);
+  budgetContingency.value = proj.budget_contingency;
+  selectedUnit.value = unitList.value.find(u => u.acronym == proj.sqm_sqft);
 }
 //#endregion Methods
 
@@ -381,7 +430,14 @@ onMounted(async () => {
   margin-top: 5px;
 }
 .project-details {
+  flex-direction: row;
+}
+.project-details > :first-child {
   cursor: pointer;
+  width: 100%;
+}
+.project-details > Button {
+  width: fit-content;
 }
 .space-sub-title {
   font-size: 1em;
