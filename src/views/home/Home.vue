@@ -10,7 +10,7 @@
       <div class="space-details" v-for="(client,clientInd) in allClients" :key="clientInd">
         <div class="space-title">
           <div>{{ client.client_name }}</div>
-          <!-- <Button @click="addProjectClick(client)">Add Project</Button> -->
+          <Button @click="addProjectClick(client)">Add Project</Button>
         </div>
         <div class="space-title space-sub-title">
           <img src="../../assets/dropdown/dropdown.png" :style="{ transform: `scaleY(${client.show ? '-1' : '1'})` }">
@@ -27,15 +27,16 @@
     </div>
     <Loader v-else-if="clientLoading" text="Loading Clients" />
 
-    <Popup :show="showAddClientPopup">
+    <Popup v-model:show="showAddClientPopup" @enter="saveClientClicked">
       <template v-slot:header>Add Client</template>
       <template v-slot:content>
         <div class="popup-content-container">
-          <FormInput placeholder="Client name" v-model:value="clientName" @focusOut="clientNameBlur" />
+          <FormInput placeholder="Client name" v-model:value="clientName" @focusOut="clientNameBlur" :disabled="isAddingProject" />
           <Dropdown placeholder="Country" :items="countryListing" v-model:selected="selectedCountry" />
           <FormInput placeholder="Project Location" v-model:value="projectLocation" />
           <FormInput placeholder="Project Description" v-model:value="projectDescription" />
           <Dropdown placeholder="Local Currency" :items="currencyListing" position="top" v-model:selected="selectedCurrency" />
+          <FormInput placeholder="Budget Contingency (%)" v-model:value="budgetContingency" />
           <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
         </div>
       </template>
@@ -61,17 +62,20 @@ const store = useStore();
 const allClients = ref([]); // The spaces that are available for the user
 const clientLoading = ref(false); // Used to show the loading when loading the client from DB
 const showAddClientPopup = ref(false); // Use to show the popup to add client
-const clientName = ref(''); // Used when adding a new client
-const projectDescription = ref(''); // The description of the project
-const projectLocation = ref(''); // The location of the project
+const isAddingProject = ref(false); // Used when adding project for the client
 const countryListing = ref([]); // The list of all the countries
-const selectedCountry = ref(null); // The selected country
 const currencyListing = ref([]); // Tje list of all the currencies
-const selectedCurrency = ref(null); // The selected currency
 const unitList = ref([]); // The list of availale units
-const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
 const savingClient = ref(false); // To show loading when saving the client
 const projectsElement = ref(null); // The element reference to the projects for each of the clients
+// For the popup model
+const clientName = ref(''); // Used when adding a new client
+const selectedCountry = ref(null); // The selected country
+const projectLocation = ref(''); // The location of the project
+const projectDescription = ref(''); // The description of the project
+const selectedCurrency = ref(null); // The selected currency
+const budgetContingency = ref(''); // The budget contingency (number)
+const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
 //#endregion Data
 
 //#region Methods
@@ -111,6 +115,7 @@ const saveClientClicked = async () => { // When a new client is saved
     project_location: projectLocation.value,
     project_desc: projectDescription.value,
     local_ccy: selectedCurrency.value.currency_code,
+    budget_contingency: budgetContingency.value,
     sqm_sqft: selectedUnit.value.acronym,
     created_by: localStorage.getItem('user')
   };
@@ -224,6 +229,18 @@ const compulsoryFieldChecking = () => {
   } else if (!selectedCurrency.value) {
     showNoti('Currency needs to be selected', 'error');
     pass = false;
+  } else if (!budgetContingency.value) {
+    showNoti('Budget contingency cannot be empty', 'error');
+    pass = false;
+  }
+
+  // Verifying the value
+  if (pass) {
+    // Checking for the budget contingency value
+    if (isNaN(Number(budgetContingency.value))) {
+      showNoti('Budget contingency must be a number');
+      pass = false;
+    }
   }
 
   return pass;
@@ -235,12 +252,21 @@ const resetFields = () => {
   projectLocation.value = '';
   projectDescription.value = '';
   selectedCurrency.value = null;
+  budgetContingency.value = '';
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
+  isAddingProject.value = false;
 }
-// const addProjectClick = (client) => {
-//   console.log(client);
-//   showNoti('Add project is still in progress.', 'warning');
-// }
+const addProjectClick = (client) => {
+  // Reset the fields first
+  resetFields();
+
+  // Open the popup with adding project is true
+  showAddClientPopup.value = true;
+  isAddingProject.value = true;
+
+  // Set the client name input
+  clientName.value = client.client_name;
+}
 const projectClicked = (proj) => {
   // Assign the client to the store and save in the localstorage
   store.state.currentClient = proj;
