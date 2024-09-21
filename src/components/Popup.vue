@@ -27,9 +27,27 @@ const props = defineProps({
   align: { type: String, default: 'left' }, // To align the content of the popup. Possible [left, center, right]
 });
 
+const emit = defineEmits([
+  'enter',
+  'update:show'
+]);
+
 //#region Data
 const mainPopupEl = ref(null); // The element of the main popup element
 //#endregion Data
+
+//#region Methods
+const keydownListener = (event) => {
+  // Checking the event key
+  if (event.key == 'Escape') {
+    // Close the popup
+    emit('update:show', false);
+  } else if ((event.metaKey || event.ctrlKey) & event.key == 'Enter') {
+    // Emit enter event
+    emit('enter');
+  }
+}
+//#endregion Methods
 
 //#region Watchers
 watch(() => props.show, (val) => {
@@ -38,7 +56,12 @@ watch(() => props.show, (val) => {
     // Make sure tha the value loaded first
     nextTick(() => {
       mainPopupEl.value.focus();
+
+      // Added event listener to handle for CTRL+enter and escape
+      mainPopupEl.value.addEventListener('keydown', keydownListener);
     });
+  } else {
+    mainPopupEl.value.removeEventListener('keydown', keydownListener);
   }
 })
 //#endregion Watchers
