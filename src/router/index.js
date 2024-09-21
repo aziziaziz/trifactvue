@@ -41,6 +41,12 @@ const routes = [
         component: () => import('../views/phase1/OfficeCustomization.vue')
       },
       {
+        path: 'Budget',
+        name: 'Budget [Phase 1]',
+        meta: { displayName: 'Budget' },
+        component: () => import('../views/phase1/Budget.vue')
+      },
+      {
         path: 'ProjectMilestone',
         name: 'Project Milestone [Phase 1]',
         meta: { displayName: 'Project Milestone' },

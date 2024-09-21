@@ -70,7 +70,7 @@ const menu = ref([ // The list of menu to be shown
       { menu: '✓ Space Requirements', icon: 'spacereq.png', path: 'SpaceReq' },
       { menu: 'Office Customization', icon: 'officecustom.png', path: 'OfficeCustom' },
       { menu: 'Retail Customization', icon: 'retailcustom.png' },
-      { menu: 'Budget', icon: 'budget.png' },
+      { menu: 'Budget', icon: 'budget.png', path: 'Budget' },
       { menu: 'Cost Breakdown', icon: 'cost.png' },
       { menu: 'Cash Flow', icon: 'cashFlow.png' },
       { menu: '✓ Project Milestone', icon: 'projectmilestone.png', path: 'ProjectMilestone' },
