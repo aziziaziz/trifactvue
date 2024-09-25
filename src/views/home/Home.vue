@@ -286,6 +286,9 @@ const resetFields = () => {
   budgetContingency.value = '';
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
   isAddingProject.value = false;
+
+  // Reset the edit mode as well
+  inEditMode.value = false;
 }
 const addProjectClick = (client) => {
   // Reset the fields first
