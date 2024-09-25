@@ -44,7 +44,7 @@
         <td>Area Unit</td>
         <td>{{ store.state.currentClient.sqm_sqft }}</td>
         <td>Exchange Rate</td>
-        <td>{{ exchangeRate }}</td>
+        <td>{{ exchangeRateText }}</td>
       </tr>
       <tr>
         <td>Tax Percentage</td>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { get } from '../../js/apiCall';
@@ -118,10 +118,11 @@ const projTotalArea = ref(''); // The total area to be shown at the header of th
 const projCompletionDate = ref(null); // The project completion date
 const budgetListing = ref([]); // The list of the budget to show
 const loadingBudget = ref(false); // When the budget is loading
-const exchangeRate = ref(4.2); // The exchange rate from the local to home ccy (Hardcode for now until the API for conversion is done)
+const exchangeRate = ref(0); // The exchange rate from the local to home ccy (Hardcode for now until the API for conversion is done)
 const currencyListing = ref([]); // The list of the currencies
 const selectedHomeCurrency = ref(''); // The selected of the home currency
 const selectedLocalCurrency = ref(''); // The selected of the local currency
+const exchangeRateText = ref('0.00'); // The exchange rate to show
 //#endregion Data
 
 //#region Methods
@@ -151,7 +152,35 @@ const getUnitRateConvertedValue = (unitRate) => {
     return '';
   }
 }
+const getExchangeRate = async () => {
+  // Checking if the current client has both local and home ccy selected
+  if (selectedHomeCurrency.value && selectedLocalCurrency.value) {
+    // Getting the currency code of the local and home ccy
+    let localCCY = currencyListing.value.find(c => c.value == selectedLocalCurrency.value)?.currency_code;
+    let homeCCY = currencyListing.value.find(c => c.value == selectedHomeCurrency.value)?.currency_code;
+
+    // Show something like loading
+    exchangeRateText.value = 'Getting Rates . . .';
+
+    // Getting the current exchange rate and assign to exchange rate and text
+    exchangeRate.value = await get(`Currency/GetCurrencyRate?base_currency=${localCCY}&target_currency=${homeCCY}`);
+    exchangeRateText.value = `${exchangeRate.value.toFixed(4)} (${localCCY} to ${homeCCY})`;
+  } else {
+    // Setting default value for the rates and text
+    exchangeRate.value = 0;
+    exchangeRateText.value = '0.00';
+  }
+}
 //#endregion Methods
+
+//#region Watcher
+watch(selectedHomeCurrency, () => {
+  getExchangeRate();
+});
+watch(selectedLocalCurrency, () => {
+  getExchangeRate();
+});
+//#endregion Watcher
 
 //#region Lifecycle
 onMounted(async () => {
