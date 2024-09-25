@@ -266,7 +266,10 @@ const compulsoryFieldChecking = () => {
     showNoti('Project description cannot be empty', 'error');
     pass = false;
   } else if (!selectedCurrency.value) {
-    showNoti('Currency needs to be selected', 'error');
+    showNoti('Local currency needs to be selected', 'error');
+    pass = false;
+  } else if (!selectedHomeCurrency.value) {
+    showNoti('Home currency needs to be selected', 'error');
     pass = false;
   } else if (!budgetContingency.value) {
     showNoti('Budget contingency cannot be empty', 'error');
@@ -358,8 +361,11 @@ const editProjectClicked = (proj) => {
   projectLocation.value = proj.project_location;
   projectDescription.value = proj.project_desc;
   selectedCurrency.value = currencyListing.value.find(c => c.currency_code == proj.local_ccy);
+  selectedHomeCurrency.value = currencyListing.value.find(c => c.currency_code == proj.home_ccy);
   budgetContingency.value = proj.budget_contingency;
   selectedUnit.value = unitList.value.find(u => u.acronym == proj.sqm_sqft);
+  projStartDate.value = dateFormat(new Date(proj.proj_start_date), 'yyyy-MM-dd');
+  projEndDate.value = dateFormat(new Date(proj.proj_end_date), 'yyyy-MM-dd');
 }
 //#endregion Methods
 
