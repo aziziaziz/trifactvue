@@ -26,8 +26,8 @@ export const dateFormat = (date, format) => {
   // Replacing the month
   result = result.replace(/MMMM/g, monthLong[date.getMonth()]);
   result = result.replace(/MMM/g, monthShort[date.getMonth()]);
-  result = result.replace(/MM/g, padNumber(date.getMonth()));
-  result = result.replace(/M/g, date.getMonth());
+  result = result.replace(/MM/g, padNumber(date.getMonth() + 1));
+  result = result.replace(/M/g, date.getMonth() + 1);
   
   // Replacing the year
   result = result.replace(/yyyy/g, date.getFullYear());
