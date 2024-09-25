@@ -10,7 +10,7 @@
         <div>{{ u.email }}</div>
       </div>
       <div class="user-buttons">
-        <Button theme="submit" @click="editUserClicked(u)">Edit</Button>
+        <Button v-if="(currentUser.match(/master1/gi) || currentUser.match(/master2/gi)) ? true : (u.username != 'Master1' && u.username != 'Master2')" theme="submit" @click="editUserClicked(u)">Edit</Button>
         <Button v-if="(u.username != 'Master1' && u.username != 'Master2') && u.username != currentUser" theme="danger" @click="deleteUserClicked(u)">Delete</Button>
       </div>
     </div>
