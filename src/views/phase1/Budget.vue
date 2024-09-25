@@ -83,16 +83,16 @@
               <td> <!-- Functional Area -->
                 <input v-model="dets.functionalAreaValue" />
               </td>
-              <td> <!-- Local Currency -->
+              <td class="number-center-text"> <!-- Local Currency -->
                 {{ getLocalCurrencyValue(dets.unitRateValue, dets.sizeValue) }}
               </td>
-              <td> <!-- Home Currency -->
+              <td class="number-center-text"> <!-- Home Currency -->
                 {{ getLocalCurrencyValue(dets.unitRateValue, dets.sizeValue, true) }}
               </td>
-              <td> <!-- Cost/SM or SF (Local Currency) -->
-                {{ dets.unitRateValue }}
+              <td class="number-center-text"> <!-- Cost/SM or SF (Local Currency) -->
+                {{ (isNaN(Number(dets.unitRateValue)) || !dets.unitRateValue) ? '' : `${localCurrencyShort} ${Number(dets.unitRateValue).toFixed(2)}` }}
               </td>
-              <td> <!-- Cost/SM or SF (Home Currency) -->
+              <td class="number-center-text"> <!-- Cost/SM or SF (Home Currency) -->
                 {{ getUnitRateConvertedValue(dets.unitRateValue) }}
               </td>
             </tr>
@@ -121,6 +121,8 @@ const loadingBudget = ref(false); // When the budget is loading
 const exchangeRate = ref(0); // The exchange rate from the local to home ccy (Hardcode for now until the API for conversion is done)
 const currencyListing = ref([]); // The list of the currencies
 const selectedHomeCurrency = ref(''); // The selected of the home currency
+const homeCurrencyShort = ref(''); // The short of the home currency
+const localCurrencyShort = ref(''); // The short of the local currency
 const selectedLocalCurrency = ref(''); // The selected of the local currency
 const exchangeRateText = ref('0.00'); // The exchange rate to show
 //#endregion Data
@@ -132,10 +134,10 @@ const getLocalCurrencyValue = (unitRate, size, isHomeCcy) => {
     // If home ccy, need to convert to the home currency
     if (isHomeCcy) {
       // Returning the unitRate * size for the home ccy
-      return value * exchangeRate.value;
+      return `${homeCurrencyShort.value} ${(value * exchangeRate.value).toFixed(2)}`;
     } else {
       // Returning the unitRate * size only (local ccy)
-      return value;
+      return `${localCurrencyShort.value} ${value.toFixed(2)}`;
     }
   } else {
     // Returning empty string
@@ -146,7 +148,7 @@ const getUnitRateConvertedValue = (unitRate) => {
   // Check if the unitrate is empty
   if (unitRate && !isNaN(Number(unitRate))) {
     // Return the unit rate with the exchange rate
-    return Number(unitRate) * exchangeRate.value;
+    return `${homeCurrencyShort.value} ${(Number(unitRate) * exchangeRate.value).toFixed(2)}`;
   } else {
     // Returning empty string
     return '';
@@ -156,15 +158,16 @@ const getExchangeRate = async () => {
   // Checking if the current client has both local and home ccy selected
   if (selectedHomeCurrency.value && selectedLocalCurrency.value) {
     // Getting the currency code of the local and home ccy
-    let localCCY = currencyListing.value.find(c => c.value == selectedLocalCurrency.value)?.currency_code;
-    let homeCCY = currencyListing.value.find(c => c.value == selectedHomeCurrency.value)?.currency_code;
+    localCurrencyShort.value = currencyListing.value.find(c => c.value == selectedLocalCurrency.value)?.currency_code;
+    homeCurrencyShort.value = currencyListing.value.find(c => c.value == selectedHomeCurrency.value)?.currency_code;
 
     // Show something like loading
     exchangeRateText.value = 'Getting Rates . . .';
+    exchangeRate.value = 0;
 
     // Getting the current exchange rate and assign to exchange rate and text
-    exchangeRate.value = await get(`Currency/GetCurrencyRate?base_currency=${localCCY}&target_currency=${homeCCY}`);
-    exchangeRateText.value = `${exchangeRate.value.toFixed(4)} (${localCCY} to ${homeCCY})`;
+    exchangeRate.value = await get(`Currency/GetCurrencyRate?base_currency=${localCurrencyShort.value}&target_currency=${homeCurrencyShort.value}`);
+    exchangeRateText.value = `${exchangeRate.value.toFixed(4)} (${localCurrencyShort.value} to ${homeCurrencyShort.value})`;
   } else {
     // Setting default value for the rates and text
     exchangeRate.value = 0;
@@ -285,5 +288,8 @@ onMounted(async () => {
 .sub-category-section {
   border: 1px solid gray;
   margin: 5px 0;
+}
+.number-center-text {
+  text-align: center;
 }
 </style>
