@@ -10,6 +10,7 @@
     
     <div v-if="loadMode" class="load-mode-section">
       <Dropdown placeholder="Developer" :items="allDevelopers" v-model:selected="selectedDeveloper" />
+      <Dropdown v-if="selectedDeveloper" :items="store.state.unitListing" placeholder="Unit" v-model:selected="devUnit" />
     </div>
     <div v-else class="create-mode-section">
       <FormInput placeholder="Developer name" v-model:value="devName" :disabled="allCriterias.length > 0" />
@@ -174,6 +175,9 @@ watch(selectedDeveloper, async (dev) => {
   allCriterias.value = criterias;
   // Setting up the original criterias
   originalCriterias.value = JSON.parse(JSON.stringify(allCriterias.value));
+  
+  // Setting the selected unit
+  devUnit.value = store.state.unitListing.find(u => u.acronym == allCriterias.value[0].unit);
 
   loadingCriteras.value = false;
 })
