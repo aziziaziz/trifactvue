@@ -154,7 +154,7 @@ onMounted(async () => {
   dictionaryListing.value = dictionaries.map(d => {
     d.value = d.table_description;
     return d;
-  });
+  }).filter(d => d.interface == 1);
 
   allDictionaryLoading.value = false;
 })
