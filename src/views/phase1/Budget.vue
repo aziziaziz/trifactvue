@@ -12,25 +12,39 @@
         <td>Project Description</td>
         <td>{{ store.state.currentClient.project_desc }}</td>
         <td>Completion Date</td>
-        <td></td>
+        <td>
+          <input type="date" v-model="projCompletionDate" />
+        </td>
       </tr>
       <tr>
         <td>Budget Contingency</td>
         <td>{{ store.state.currentClient.budget_contingency }} %</td>
         <td>Local Currency</td>
-        <td>{{ store.state.currentClient.local_ccy }}</td>
+        <td>
+          <select v-model="selectedLocalCurrency">
+            <option value="" disabled>Please Select</option>
+            <option v-for="(ccy,ccyInd) in currencyListing" :key="ccyInd" :value="ccy.value">{{ ccy.value }}</option>
+          </select>
+        </td>
       </tr>
       <tr>
         <td>Total Area</td>
         <td>
-          <input />
+          <input v-model="projTotalArea" />
         </td>
-        <td>Exchange Rate</td>
-        <td>{{ exchangeRate }}</td>
+        <td>Home Currency</td>
+        <td>
+          <select v-model="selectedHomeCurrency">
+            <option value="" disabled>Please Select</option>
+            <option v-for="(ccy,ccyInd) in currencyListing" :key="ccyInd" :value="ccy.value">{{ ccy.value }}</option>
+          </select>
+        </td>
       </tr>
       <tr>
         <td>Area Unit</td>
         <td>{{ store.state.currentClient.sqm_sqft }}</td>
+        <td>Exchange Rate</td>
+        <td>{{ exchangeRate }}</td>
       </tr>
       <tr>
         <td>Tax Percentage</td>
@@ -100,9 +114,14 @@ const store = useStore();
 const router = useRouter();
 
 //#region Data
+const projTotalArea = ref(''); // The total area to be shown at the header of the page
+const projCompletionDate = ref(null); // The project completion date
 const budgetListing = ref([]); // The list of the budget to show
 const loadingBudget = ref(false); // When the budget is loading
 const exchangeRate = ref(4.2); // The exchange rate from the local to home ccy (Hardcode for now until the API for conversion is done)
+const currencyListing = ref([]); // The list of the currencies
+const selectedHomeCurrency = ref(''); // The selected of the home currency
+const selectedLocalCurrency = ref(''); // The selected of the local currency
 //#endregion Data
 
 //#region Methods
@@ -137,7 +156,32 @@ const getUnitRateConvertedValue = (unitRate) => {
 //#region Lifecycle
 onMounted(async () => {
   if (store.state.currentClient) {
+    // Populating the currency listing
+    currencyListing.value = store.state.currencyListing;
+
+    // Set the loading to true
     loadingBudget.value = true;
+
+    // Getting all the space requirements to get the total area
+    let spaces = await get(`Space/SpaceRequirements?client_uid=${store.state.currentClient.client_uid}`);
+    projTotalArea.value = spaces.map(s => s.total_area).reduce((a,b) => a + b, 0);
+
+    // Populating the home currency
+    if (store.state.currentClient.home_ccy) {
+      selectedHomeCurrency.value = currencyListing.value.find(c => c.currency_code == store.state.currentClient.home_ccy)?.value;
+    }
+    
+    // Populating the local currency
+    if (store.state.currentClient.local_ccy) {
+      selectedLocalCurrency.value = currencyListing.value.find(c => c.currency_code == store.state.currentClient.local_ccy)?.value;
+    }
+
+    // Populating the project completion date while checking if the date is not empty
+    let compDate = new Date(store.state.currentClient.proj_end_date);
+    if (compDate.getFullYear() != 1) {
+      projCompletionDate.value = dateFormat(compDate, 'yyyy-MM-dd');
+    }
+
     // Get the budget based on the client
     budgetListing.value = await get(`Budget/GetAllBudgetClientList?client_uid=${store.state.currentClient.client_uid}`);
 
