@@ -2,6 +2,7 @@
   <div class="milestone-main">
     <Loader v-if="isLoading" text="Loading Project Milestone" />
     <FormInput v-if="!isLoading" :placeholder="`Size (${clientUnit})`" @enter="loadingDetails" v-model:value="inputTotalSize" />
+    <Dropdown placeholder="Country" :items="countryListing" v-model:selected="selectedCountry" />
     <Button v-if="!isLoading" theme="submit" @click="loadingDetails">Calculate Milestone</Button>
     <Button class="save-milestone-button" v-if="!isLoading && milestones.length > 0" theme="submit" @click="saveMilestone"
       :loading="isSaving">Save Milestone</Button>
@@ -41,6 +42,8 @@ const isSaving = ref(false);
 const originalMilestones = ref([]);
 const milestones = ref([]);
 const clientUnit = ref('');
+const countryListing = ref([]); // The list of the countries
+const selectedCountry = ref(null); // The selected country
 //EndRegion Data
 
 //Region Methods
@@ -61,7 +64,7 @@ const loadingDetails = async () => {
     isLoading.value = true;
 
     // Calculate the milestone from DB
-    milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesAreaBySize?size=${inputTotalSize.value}`);
+    milestones.value = await get(`ProjectMilestones/GetAllProjectMileStonesAreaBySize?size=${inputTotalSize.value}&country=${selectedCountry.value.code}`);
     // Mapping to add user input
     milestones.value = milestones.value.map(m => {
       let obj = JSON.parse(JSON.stringify(m));
@@ -116,6 +119,11 @@ onMounted(async () => {
     if (milestones.value.length > 0) {
       inputTotalSize.value = milestones.value[0].total_size;
     }
+
+    // Loading the countries from the store
+    countryListing.value = store.state.countryListing;
+    // Default the selected country based on the client
+    selectedCountry.value = countryListing.value.find(c => c.code == store.state.currentClient.country);
   } else {
     router.push('/Home?choose');
   }
