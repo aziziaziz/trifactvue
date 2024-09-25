@@ -41,13 +41,46 @@
       </table>
     </div>
   </div>
+
+  <Popup :show="showSharePopup">
+    <template v-slot:header>Share Link</template>
+    <template v-slot:content>
+      <Loader v-if="loadingShareId" text="Generating Share Link" />
+      <div v-else-if="!linkSharedDetails" class="share-link-popup-details">
+        <div>You may share this form via the link below</div>
+        <div>This link will only bbe available for up to 12 hours only</div>
+      </div>
+      <div v-else-if="linkSharedDetails" class="share-link-popup-details">
+        <div>Link have been shared previously and will expire at {{ linkSharedDetails.expiry_datetime }}.</div>
+        <div>You can extend the time for the share link or update the share details below</div>
+        <div class="extend-share-id-section">
+          <div>Extend</div>
+          <select v-model="extendTime">
+            <option value="" disabled selected>Please Select</option>
+            <option value="1">1</option>
+            <option value="3">3</option>
+            <option value="6">6</option>
+          </select>
+          <div>Hours</div>
+          <Button theme="submit" @click="extendTimeClicked">Extend</Button>
+        </div>
+      </div>
+      <div v-if="!loadingShareId" class="share-link">
+        <div class="link" @click="linkClicked">{{ shareLink }}</div>
+        <Button class="copy-link" @click="copyLinkClicked">Copy Link</Button>
+      </div>
+    </template>
+    <template v-slot:footer>
+      <Button theme="submit" @click="showSharePopup = false">Ok</Button>
+    </template>
+  </Popup>
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
-import { get, put } from '../../js/apiCall';
-import { showNoti, compareData } from '../../js/helper';
+import { get, put, post } from '../../js/apiCall';
+import { showNoti, compareData, buildSignalR, hubDetails } from '../../js/helper';
 
 const store = useStore();
 
@@ -57,13 +90,29 @@ const devName = ref(''); // The developer name when creating the developer
 const devUnit = ref(null); // The developer unit selection when creating the developer
 const allCriterias = ref([]); // The list of criterias
 const originalCriterias = ref([]); // The original critierias when loading the details for the developer
-// const originalCriteria = ref([]); // The list of the original criteria for comparing
 const loadingCriteras = ref(false); // The loading of the criterias
 const savingCriteria = ref(false); // To show loading when saving the criteria
 const allDevelopers = ref([]); // The list of the developers
 const loadingAllDeveloper = ref(false); // When loading all the developers
 const selectedDeveloper = ref(null); // The selected developer
+const showSharePopup = ref(false); // The data to use to show the share popup
+const loadingShareId = ref(false); // When loading the share id
+const shareId = ref(''); // The share id
+const linkSharedDetails = ref(null); // The share details
+const extendTime = ref(''); // How long the share time to be extend
+const signalHub = ref(null); // The connection to the signalR
 //#endregion Data
+
+//#region Computed
+const shareLink = computed(() => { // The shareable link
+  // Check if the share id has already been generated, if not, return empty string
+  if (shareId.value) {
+    return `${window.location.origin}/BuildingSelection/${shareId.value}`;
+  } else {
+    return '';
+  }
+});
+//#endregion Computed
 
 //#region Methods
 const generateFormClicked = async () => {
@@ -96,8 +145,17 @@ const generateFormClicked = async () => {
 
   loadingCriteras.value = false;
 }
-const saveAndShareClicked = () => {
-  showNoti('Button is not ready.', 'warning');
+const saveAndShareClicked = async () => {
+  // Show the share popup
+  showSharePopup.value = true;
+  loadingShareId.value = true;
+
+  // First save the details first, then generate the share link
+  await saveClicked();
+  await shareClicked();
+
+  // Hide the loading
+  loadingShareId.value = false;
 }
 const saveClicked = async () => {
   if (loadMode.value) {
@@ -150,10 +208,75 @@ const changePageType = (isLoadMode) => {
   // Changing the load mode
   loadMode.value = isLoadMode;
 }
+const shareClicked = async () => {
+  // Resetting all the values
+  shareId.value = '';
+  linkSharedDetails.value = null;
+  extendTime.value = '';
+
+  // Showing the share popup
+  showSharePopup.value = true;
+  loadingShareId.value = true;
+
+  // Check if link has been generated
+  let previousShare = await get(`FormShare/CheckShared?user=${localStorage.getItem('user')}&client=${store.state.currentClient.client_uid}`);
+  if (previousShare.length > 0) { // If the share id has been generated
+    linkSharedDetails.value = previousShare[0];
+    shareId.value = previousShare[0].share_id;
+
+    // Update the json details
+    // await updateShareDetailsClicked();
+  } else { // Generate a new share id
+    // Generating the share link from the backend
+    let url = `FormShare/GenerateShareId?client=${store.state.currentClient.client_uid}&page=BuildingSelectionDeveloper&user=${localStorage.getItem('user')}&expire=0.1`;
+    let shareIdResult = await post(url, allCriterias.value);
+    shareId.value = shareIdResult;
+  }
+
+  loadingShareId.value = false;
+}
+const linkClicked = () => {
+  window.open(shareLink.value, '_blank');
+}
+const copyLinkClicked = () => {
+  // Copying the shareId to clipboard
+  navigator.clipboard.writeText(shareLink.value);
+
+  // Showing that the copy successful
+  showNoti('Copied to clipboard!', 'success');
+}
+const extendTimeClicked = async () => {
+  // Check if the extend time is selected
+  if (extendTime.value) {
+    loadingShareId.value = true;
+
+    let newTime = await put(`FormShare/ExtendShareTime?id=${shareId.value}&time=${extendTime.value}`);
+    linkSharedDetails.value.expiry_datetime = newTime;
+
+    // Invoke the signalr
+    if (signalHub.value) {
+      signalHub.value.invoke(hubDetails.BUILDINGEXTENDTIME, shareId.value);
+    }
+
+    loadingShareId.value = false;
+
+    // Reset back the value of the extendtime
+    extendTime.value = '';
+
+    // Show noti that it ihas been extended
+    showNoti('Time has been extended', 'success');
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
 onMounted(async () => {
+  // Build and connect to signalr
+  if (!signalHub.value) {
+    signalHub.value = buildSignalR(hubDetails.BUILDINGHUBNAME);
+    signalHub.value.start();
+  }
+
   // Loading the list of the developers
   loadingAllDeveloper.value = true;
   let developers = await get('BuildingBenchmark/GetAllDevelopers');
@@ -164,7 +287,13 @@ onMounted(async () => {
   allDevelopers.value = developers;
 
   loadingAllDeveloper.value = false;
-})
+});
+onBeforeUnmount(() => {
+  // Stop the hub connection
+  if (signalHub.value) {
+    signalHub.value.stop();
+  }
+});
 //#endregion Lifecycle
 
 //#region Watcher
@@ -271,5 +400,40 @@ td > input {
   display: flex;
   flex-direction: column;
   row-gap: 5px;
+}
+.share-link-popup-details {
+  text-align: center;
+}
+.share-link {
+  display: flex;
+  column-gap: 5px;
+  align-items: center;
+  margin: 10px 0;
+}
+.share-link > .link {
+  text-align: center;
+  width: 100%;
+  padding: 5px;
+  border: 1px solid gray;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.share-link > .copy-link {
+  width: fit-content;
+  white-space: nowrap;
+}
+.extend-share-id-section {
+  display: flex;
+  align-items: center;
+  column-gap: 5px;
+  justify-content: center;
+  margin-top: 5px;
+}
+.extend-share-id-section > Button {
+  width: fit-content;
+}
+.extend-share-id-section > select {
+  padding: 5px;
 }
 </style>
