@@ -39,8 +39,11 @@
           <FormInput placeholder="Project Location" v-model:value="projectLocation" :disabled="inEditMode" />
           <FormInput placeholder="Project Description" v-model:value="projectDescription" />
           <Dropdown placeholder="Local Currency" :items="currencyListing" position="top" v-model:selected="selectedCurrency" />
+          <Dropdown placeholder="Home Currency" :items="currencyListing" position="top" v-model:selected="selectedHomeCurrency" />
           <FormInput placeholder="Budget Contingency (%)" v-model:value="budgetContingency" />
           <Dropdown placeholder="Space unit" :items="unitList" v-model:selected="selectedUnit" position="top" />
+          <FormInput placeholder="Project Start Date" v-model:value="projStartDate" type="date" :disabled="inEditMode" />
+          <FormInput placeholder="Project End Date" v-model:value="projEndDate" type="date" />
         </div>
       </template>
       <template v-slot:footer>
@@ -57,7 +60,7 @@
 import { onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { get, post, put } from '../../js/apiCall';
-import { popup, showNoti } from '../../js/helper';
+import { dateFormat, popup, showNoti } from '../../js/helper';
 
 const store = useStore();
 
@@ -79,8 +82,11 @@ const selectedCountry = ref(null); // The selected country
 const projectLocation = ref(''); // The location of the project
 const projectDescription = ref(''); // The description of the project
 const selectedCurrency = ref(null); // The selected currency
+const selectedHomeCurrency = ref(null); // The selected currency
 const budgetContingency = ref(''); // The budget contingency (number)
 const selectedUnit = ref({ value: 'Square Feet (sqft)', acronym: 'sqft' }); // The unit when adding new client, default to sqft
+const projStartDate = ref(dateFormat(new Date(), 'yyyy-MM-dd')); // The value of the project start date
+const projEndDate = ref(null); // The value of the project end date
 //#endregion Data
 
 //#region Methods
@@ -120,9 +126,12 @@ const saveClientClicked = async () => { // When a new client is saved
     project_location: projectLocation.value,
     project_desc: projectDescription.value,
     local_ccy: selectedCurrency.value.currency_code,
+    home_ccy: selectedHomeCurrency.value.currency_code,
     budget_contingency: Number(budgetContingency.value),
     sqm_sqft: selectedUnit.value.acronym,
-    created_by: localStorage.getItem('user')
+    created_by: localStorage.getItem('user'),
+    proj_start_date: projStartDate.value,
+    proj_end_date: projEndDate.value
   };
   savingClient.value = true;
 
@@ -280,12 +289,15 @@ const resetFields = () => {
   editClientUID .value = '';
   clientName.value = '';
   selectedCountry.value = null;
+  selectedHomeCurrency.value = null;
   projectLocation.value = '';
   projectDescription.value = '';
   selectedCurrency.value = null;
   budgetContingency.value = '';
   selectedUnit.value = { value: 'Square Feet (sqft)', acronym: 'sqft' };
   isAddingProject.value = false;
+  projStartDate.value = dateFormat(new Date(), 'yyyy-MM-dd');
+  projEndDate.value = null;
 
   // Reset the edit mode as well
   inEditMode.value = false;
