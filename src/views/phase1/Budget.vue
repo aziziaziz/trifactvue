@@ -55,31 +55,47 @@
     <div class="budget-main-section">
       <table class="main-budget-table">
         <tr v-for="(bud,budInd) in budgetListing" :key="budInd" class="main-budget-row">
+          <!-- Category, SubCategory, Name/Details -->
           <th v-if="bud.type == 'category' || bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col1 }}</th>
           <td v-else>
             <div class="budget-name">{{ bud.col1.split('\n')[0] }}</div>
             <div v-if="bud.col1.split('\n')[1]" class="budget-desc">{{ bud.col1.split('\n')[1] }}</div>
           </td>
+          <!-- Unit Rate -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col2 }}</th>
           <td v-else-if="bud.type == 'details'">
             <input v-model="bud.col2">
           </td>
+          <!-- Size -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col3 }}</th>
           <td v-else-if="bud.type == 'details'">
             <input v-model="bud.col3">
           </td>
+          <!-- Functional Area -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col4 }}</th>
           <td v-else-if="bud.type == 'details'">
             <input v-model="bud.col4">
           </td>
+          <!-- Local currency -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col5 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ getLocalCurrencyValue(bud.col2, bud.col3) }}</td>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">
+            {{ getLocalCurrencyValue(bud.col2, bud.col3) }}
+          </td>
+          <!-- Home currency -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col6 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ getLocalCurrencyValue(bud.col2, bud.col3, true) }}</td>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">
+            {{ getLocalCurrencyValue(bud.col2, bud.col3, true) }}
+          </td>
+          <!-- Cost (Local currency) -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col7 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ (isNaN(Number(bud.col2)) || !bud.col2) ? '' : `${localCurrencyShort} ${Number(bud.col2).toFixed(2)}` }}</td>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">
+            {{ (isNaN(Number(bud.col2)) || !bud.col2) ? '' : `${localCurrencyShort} ${Number(bud.col2).toFixed(2)}` }}
+          </td>
+          <!-- Cost (Home currency) -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col8 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ getUnitRateConvertedValue(bud.col2) }}</td>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">
+            {{ getUnitRateConvertedValue(bud.col2) }}
+          </td>
         </tr>
       </table>
     </div> 
