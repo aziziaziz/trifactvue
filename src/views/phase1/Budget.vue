@@ -105,7 +105,6 @@
 </template>
 
 <script setup>
-/* eslint-disable */
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
