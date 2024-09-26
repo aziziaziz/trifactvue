@@ -1,6 +1,6 @@
 <template>
   <Loader v-if="loadingBudget" text="Loading Budget" />
-  <div v-else>
+  <div class="budget-main" v-else>
     <table class="top-table">
       <tr>
         <td>Project Location</td>
@@ -98,7 +98,9 @@
           </td>
         </tr>
       </table>
-    </div> 
+    </div>
+    
+    <Button theme="submit" class="save-button">Save Budget</Button>
   </div>
 </template>
 
@@ -300,6 +302,12 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.budget-main {
+  position: relative;
+  padding-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
 .top-table, .main-budget-table {
   border-collapse: collapse;
   width: 100%;
@@ -348,5 +356,12 @@ onMounted(async () => {
 }
 .main-budget-row:hover > td {
   background-color: rgba(200,200,200,0.4);
+}
+.save-button {
+  margin-top: 10px;
+  position: sticky;
+  bottom: 10px;
+  width: fit-content;
+  align-self: flex-end;
 }
 </style>
