@@ -54,56 +54,40 @@
 
     <div class="budget-main-section">
       <table class="main-budget-table">
-        <template v-for="(budget,budgetInd) in budgetListing" :key="budgetInd">
-          <tr>
-            <th class="category-header" colspan="8">{{ budget.category }}</th>
-          </tr>
-          <div class="sub-category-section" v-for="(sub,subInd) in budget.details" :key="subInd">
-            <tr>
-              <th>{{ sub.subCategory }}</th>
-              <th>Unit Rate</th>
-              <th>Size</th>
-              <th>Functional Area</th>
-              <th>Local Currency</th>
-              <th>Home Currency</th>
-              <th>Cost/SM or SF (Local Currency)</th>
-              <th>Cost/SM or SF (Home Currency)</th>
-            </tr>
-            <tr v-for="(dets,detsInd) in sub.details" :key="detsInd">
-              <td>
-                <div class="budget-name">{{ dets.budget_name }}</div>
-                <div v-if="dets.budget_description" class="budget-desc">{{ dets.budget_description }}</div>
-              </td>
-              <td> <!-- Unit Rate -->
-                <input v-model="dets.unitRateValue" />
-              </td>
-              <td> <!-- Size -->
-                <input v-model="dets.sizeValue" />
-              </td>
-              <td> <!-- Functional Area -->
-                <input v-model="dets.functionalAreaValue" />
-              </td>
-              <td class="number-center-text"> <!-- Local Currency -->
-                {{ getLocalCurrencyValue(dets.unitRateValue, dets.sizeValue) }}
-              </td>
-              <td class="number-center-text"> <!-- Home Currency -->
-                {{ getLocalCurrencyValue(dets.unitRateValue, dets.sizeValue, true) }}
-              </td>
-              <td class="number-center-text"> <!-- Cost/SM or SF (Local Currency) -->
-                {{ (isNaN(Number(dets.unitRateValue)) || !dets.unitRateValue) ? '' : `${localCurrencyShort} ${Number(dets.unitRateValue).toFixed(2)}` }}
-              </td>
-              <td class="number-center-text"> <!-- Cost/SM or SF (Home Currency) -->
-                {{ getUnitRateConvertedValue(dets.unitRateValue) }}
-              </td>
-            </tr>
-          </div>
-        </template>
+        <tr v-for="(bud,budInd) in budgetListing" :key="budInd" class="main-budget-row">
+          <th v-if="bud.type == 'category' || bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col1 }}</th>
+          <td v-else>
+            <div class="budget-name">{{ bud.col1.split('\n')[0] }}</div>
+            <div v-if="bud.col1.split('\n')[1]" class="budget-desc">{{ bud.col1.split('\n')[1] }}</div>
+          </td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col2 }}</th>
+          <td v-else-if="bud.type == 'details'">
+            <input v-model="bud.col2">
+          </td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col3 }}</th>
+          <td v-else-if="bud.type == 'details'">
+            <input v-model="bud.col3">
+          </td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col4 }}</th>
+          <td v-else-if="bud.type == 'details'">
+            <input v-model="bud.col4">
+          </td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col5 }}</th>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ getLocalCurrencyValue(bud.col2, bud.col3) }}</td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col6 }}</th>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ getLocalCurrencyValue(bud.col2, bud.col3, true) }}</td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col7 }}</th>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ (isNaN(Number(bud.col2)) || !bud.col2) ? '' : `${localCurrencyShort} ${Number(bud.col2).toFixed(2)}` }}</td>
+          <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col8 }}</th>
+          <td v-else-if="bud.type == 'details'" class="number-right-text">{{ getUnitRateConvertedValue(bud.col2) }}</td>
+        </tr>
       </table>
     </div> 
   </div>
 </template>
 
 <script setup>
+/* eslint-disable */
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
@@ -173,6 +157,20 @@ const getExchangeRate = async () => {
     exchangeRate.value = 0;
     exchangeRateText.value = '0.00';
   }
+}
+const generateTableObj = (col1,col2,col3,col4,col5,col6,col7,col8) => {
+  // This will return all the 8 columns with the type
+  return {
+    col1: col1 || '', // The category, subCategory or budget name
+    col2: col2 || '', // unit rate
+    col3: col3 || '', // Size
+    col4: col4 || '', // Functional are
+    col5: col5 || '', // local currency
+    col6: col6 || '', // Home Currency
+    col7: col7 || '', // Cost (Local)
+    col8: col8 || '', // Cost (Home)
+    type: '' // Can be category, subCategory or details
+  };
 }
 //#endregion Methods
 
@@ -248,8 +246,32 @@ onMounted(async () => {
       group.details = groupBySub;
     });
 
-    // Set the budget listing to be the one that is grouped
-    budgetListing.value = groupByCategory;
+    // Modifying the value so that it is only 1 level array
+    let formattedListing = [];
+    groupByCategory.forEach(grp => {
+      // Adding the category
+      let cat = generateTableObj(grp.category);
+      cat.type = 'category';
+      formattedListing.push(cat);
+
+      // Looping through the details
+      grp.details.forEach(sub => {
+        // Adding the sub category header
+        let subCat = generateTableObj(sub.subCategory,'Unit Rate','Size','Functional Area','Local Currency','Home Currency','Cost/SM or SF\n(Local Currency)','Cost/SM or SF\n(Home Currency)');
+        subCat.type = 'subCategory';
+        formattedListing.push(subCat);
+
+        // Pushing all the details
+        sub.details.forEach(subDetails => {
+          let details = generateTableObj(`${subDetails.budget_name}\n${subDetails.budget_description}`,'','','','','','','');
+          details.type = 'details';
+          formattedListing.push(details);
+        });
+      });
+    });
+
+    // Set the budget listing to be the one that is formatted
+    budgetListing.value = formattedListing;
 
     // Close the loading
     loadingBudget.value = false;
@@ -275,6 +297,22 @@ onMounted(async () => {
   white-space: nowrap;
   padding-right: 10px;
 }
+.main-budget-table tr td, .main-budget-table tr th {
+  border: 1px solid gray;
+  padding: 5px;
+}
+.main-budget-table tr th {
+  white-space: pre-wrap;
+}
+.main-budget-table tr td > input {
+  width: 100%;
+  height: 100%;
+  padding: 5px;
+  text-align: right;
+}
+.main-budget-table tr td:not(:first-child) {
+  width: 10%;
+}
 .category-header {
   text-align: left;
 }
@@ -289,7 +327,10 @@ onMounted(async () => {
   border: 1px solid gray;
   margin: 5px 0;
 }
-.number-center-text {
-  text-align: center;
+.number-right-text {
+  text-align: right;
+}
+.main-budget-row:hover > td {
+  background-color: rgba(200,200,200,0.4);
 }
 </style>
