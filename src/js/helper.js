@@ -214,3 +214,54 @@ export const logout = () => {
   // Clearing from the store
   store.state.currentClient = '';
 }
+// To be used to convert number to a currency formatted
+export const formatNumber = (num, separator = ',', decimal = 2) => {
+  // Checking if num is really a number
+  if (isNaN(Number(num))) {
+    console.error(`formatNumber: ${num} - is not a number`);
+    return 0;
+  }
+
+  // Rounde the number first
+  num = roundNumber(num, decimal);
+  // Split the num to get the whole nunber and the decimal number
+  let numSplit = num.toString().split('.');
+  let wholeNum = numSplit[0];
+  let decimalNum = numSplit[1] || '0';
+
+  // Splitting the whole number
+  let wholeNumSplit = wholeNum.split('').reverse();
+
+  // Set the result to empty array
+  let result = [];
+  for (let x = 0; x < wholeNumSplit.length; x += 3) {
+    // Slice and reverse
+    result.push(wholeNumSplit.slice(x, x + 3).reverse().join(''));
+  }
+
+  // Reverse the array since the last inserted is the first value
+  result.reverse();
+
+  // Return the result
+  return `${result.join(separator)}.${decimalNum}${decimalNum.length < 2 ? '0' : ''}`;
+}
+// To be used to get the number value if the value is already formatted
+export const getNumber = (formatted) => {
+  // Checking the formatted if there is a value
+  if (formatted) {
+    // The the digits and dot only
+    let allNumber = formatted.match(/\d|\./g);
+    
+    // Checking if digit and dot is found
+    if (allNumber.length > 0) {
+      // Return the number value
+      return Number(allNumber.join('')) || 0;
+    } else {
+      // Returning 0 since no digit is found
+      return 0;
+    }
+  } else {
+    // Returning 0 if the formatted is null/empty/undefined
+    return 0;
+  }
+}
