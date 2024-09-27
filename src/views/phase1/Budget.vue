@@ -79,28 +79,28 @@
           <!-- Local currency -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col5 }}</th>
           <td v-else-if="bud.type == 'details'" class="number-right-text">
-            {{ getLocalCurrencyValue(bud.col2, bud.col3) }}
+            {{ getLocalCurrencyValue(bud, bud.col2, bud.col3) }}
           </td>
           <!-- Home currency -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col6 }}</th>
           <td v-else-if="bud.type == 'details'" class="number-right-text">
-            {{ getLocalCurrencyValue(bud.col2, bud.col3, true) }}
+            {{ getLocalCurrencyValue(bud, bud.col2, bud.col3, true) }}
           </td>
           <!-- Cost (Local currency) -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col7 }}</th>
           <td v-else-if="bud.type == 'details'" class="number-right-text">
-            {{ (isNaN(Number(bud.col2)) || !bud.col2) ? '' : `${localCurrencyShort} ${Number(bud.col2).toFixed(2)}` }}
+            {{ getUnitRateConvertedValue(bud, bud.col2) }}
           </td>
           <!-- Cost (Home currency) -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col8 }}</th>
           <td v-else-if="bud.type == 'details'" class="number-right-text">
-            {{ getUnitRateConvertedValue(bud.col2) }}
+            {{ getUnitRateConvertedValue(bud, bud.col2, true) }}
           </td>
         </tr>
       </table>
     </div>
     
-    <Button theme="submit" class="save-button">Save Budget</Button>
+    <Button theme="submit" class="save-button" @click="saveClicked">Save Budget</Button>
   </div>
 </template>
 
@@ -109,7 +109,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { get } from '../../js/apiCall';
-import { dateFormat } from '../../js/helper';
+import { dateFormat, formatNumber, getNumber } from '../../js/helper';
 
 const store = useStore();
 const router = useRouter();
@@ -129,31 +129,61 @@ const exchangeRateText = ref('0.00'); // The exchange rate to show
 //#endregion Data
 
 //#region Methods
-const getLocalCurrencyValue = (unitRate, size, isHomeCcy) => {
+const getLocalCurrencyValue = (toUpdate, unitRate, size, isHomeCcy) => {
+  // Setting up the result as empty string
+  let result = '';
+
   if (unitRate && !isNaN(Number(unitRate)) && size && !isNaN(Number(size))) {
     let value = Number(unitRate) * Number(size);
     // If home ccy, need to convert to the home currency
     if (isHomeCcy) {
       // Returning the unitRate * size for the home ccy
-      return `${homeCurrencyShort.value} ${(value * exchangeRate.value).toFixed(2)}`;
+      result = `${homeCurrencyShort.value} ${formatNumber(value * exchangeRate.value)}`;
     } else {
       // Returning the unitRate * size only (local ccy)
-      return `${localCurrencyShort.value} ${value.toFixed(2)}`;
+      result = `${localCurrencyShort.value} ${formatNumber(value)}`;
     }
   } else {
     // Returning empty string
-    return '';
+    result = '';
   }
+
+  // Assigning back to the object
+  if (isHomeCcy) {
+    toUpdate.col6 = result;
+  } else {
+    toUpdate.col5 = result;
+  }
+
+  return result;
 }
-const getUnitRateConvertedValue = (unitRate) => {
+const getUnitRateConvertedValue = (toUpdate, unitRate, isHomeCcy) => {
+  // Setting up the result as empty string
+  let result = '';
+
   // Check if the unitrate is empty
   if (unitRate && !isNaN(Number(unitRate))) {
-    // Return the unit rate with the exchange rate
-    return `${homeCurrencyShort.value} ${(Number(unitRate) * exchangeRate.value).toFixed(2)}`;
+    // Checking if home ccy
+    if (isHomeCcy) {
+      // Return the unit rate with the exchange rate
+      result = `${homeCurrencyShort.value} ${formatNumber(Number(unitRate) * exchangeRate.value)}`;
+    } else {
+      // Returninng the local unit rate
+      result = `${localCurrencyShort.value} ${formatNumber(unitRate)}`;
+    }
   } else {
     // Returning empty string
-    return '';
+    result = '';
   }
+
+  // Assigning back to the object
+  if (isHomeCcy) {
+    toUpdate.col8 = result;
+  } else {
+    toUpdate.col7 = result;
+  }
+
+  return result;
 }
 const getExchangeRate = async () => {
   // Checking if the current client has both local and home ccy selected
@@ -187,8 +217,48 @@ const generateTableObj = (col1,col2,col3,col4,col5,col6,col7,col8) => {
     col6: col6 || '', // Home Currency
     col7: col7 || '', // Cost (Local)
     col8: col8 || '', // Cost (Home)
-    type: '' // Can be category, subCategory or details
+    type: '', // Can be category, subCategory or details
+    fullDetails: null // This is to be used if the type is details only
   };
+}
+const saveClicked = () => {
+  // Getting all the details object only
+  let details = budgetListing.value.filter(b => b.type == 'details');
+  console.log(details);
+  
+  let objToPost = details.map(d => {
+    console.log(d.col5,d.col6,d.col7,d.col8);
+    return {
+      action: 'I',
+      client_uid: store.state.currentClient.client_uid,
+      budget_uid: d.fullDetails.budget_uid,
+      description: '', // What is this?
+      category: d.fullDetails.category,
+      sub_category: d.fullDetails.sub_category,
+      budget_name: d.fullDetails.budget_name,
+      budget_description: d.fullDetails.budget_description,
+      subtype: '',
+      unit_rate: d.col2,
+      functional_area: d.col4,
+      area_size: d.col3,
+      local_ccy: localCurrencyShort.value,
+      home_ccy: homeCurrencyShort.value,
+      local_currency_cost: getNumber(d.col5),
+      home_cost: getNumber(d.col6),
+      local_currency_cost_sm: getNumber(d.col7),
+      home_cost_sm: getNumber(d.col8),
+      total_local_currency_cost: 0,
+      total_home_cost: 0,
+      total_local_currency_cost_sm: 0,
+      total_home_cost_sm: 0,
+      total_tax_local_currency_cost: 0,
+      total_tax_home_cost: 0,
+      total_tax_local_currency_cost_sm: 0,
+      total_tax_home_cost_sm: 0
+    };
+  });
+
+  console.log(objToPost);
 }
 //#endregion Methods
 
@@ -283,6 +353,7 @@ onMounted(async () => {
         sub.details.forEach(subDetails => {
           let details = generateTableObj(`${subDetails.budget_name}\n${subDetails.budget_description}`,'','','','','','','');
           details.type = 'details';
+          details.fullDetails = subDetails;
           formattedListing.push(details);
         });
       });
