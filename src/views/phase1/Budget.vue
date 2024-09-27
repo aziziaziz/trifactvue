@@ -167,7 +167,8 @@ const getExchangeRate = async () => {
     exchangeRate.value = 0;
 
     // Getting the current exchange rate and assign to exchange rate and text
-    exchangeRate.value = await get(`Currency/GetCurrencyRate?base_currency=${localCurrencyShort.value}&target_currency=${homeCurrencyShort.value}`);
+    let exchangeRateObj = await get(`Currency/GetCurrencyRate?base_currency=${localCurrencyShort.value}&target_currency=${homeCurrencyShort.value}`);
+    exchangeRate.value = exchangeRateObj.rate;
     exchangeRateText.value = `${exchangeRate.value.toFixed(4)} (${localCurrencyShort.value} to ${homeCurrencyShort.value})`;
   } else {
     // Setting default value for the rates and text
