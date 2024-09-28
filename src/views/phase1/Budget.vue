@@ -112,7 +112,7 @@
       </table>
     </div>
     
-    <Button theme="submit" class="save-button" @click="saveClicked">Save Budget</Button>
+    <Button theme="submit" class="save-button" @click="saveClicked" :loading="savingBudget">Save Budget</Button>
   </div>
 </template>
 
@@ -121,7 +121,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { get, post } from '../../js/apiCall';
-import { dateFormat, formatNumber, getNumber } from '../../js/helper';
+import { compareData, dateFormat, formatNumber, getNumber, showNoti } from '../../js/helper';
 
 const store = useStore();
 const router = useRouter();
@@ -130,6 +130,7 @@ const router = useRouter();
 const projTotalArea = ref(''); // The total area to be shown at the header of the page
 const projCompletionDate = ref(null); // The project completion date
 const budgetListing = ref([]); // The list of the budget to show
+const originalBudgetListing = ref([]); // The original budget listing if it is already saved before
 const loadingBudget = ref(false); // When the budget is loading
 const exchangeRate = ref(0); // The exchange rate from the local to home ccy this is the live rate
 const savedExchangeRate = ref(0); // The exchange rate from the mp budget
@@ -141,6 +142,7 @@ const selectedLocalCurrency = ref(''); // The selected of the local currency
 const exchangeRateText = ref('0.00'); // The exchange rate to show
 const savedExchangeRateText = ref(''); // The saved exchange rate to show
 const showSavedRate = ref(false); // The toggling between saved and current rate
+const savingBudget = ref(false); // When saving the budget
 //#endregion Data
 
 //#region Methods
@@ -239,17 +241,25 @@ const generateTableObj = (col1,col2,col3,col4,col5,col6,col7,col8) => {
     col7: col7 || '', // Cost (Local)
     col8: col8 || '', // Cost (Home)
     type: '', // Can be category, subCategory or details
+    uid: null, // The budget uid
     fullDetails: null // This is to be used if the type is details only
   };
 }
 const saveClicked = async () => {
+  // Set the loading in the button
+  savingBudget.value = true;
+
   // Getting all the details object only
   let details = budgetListing.value.filter(b => b.type == 'details');
+  let oriDetails = originalBudgetListing.value.filter(b => b.type == 'details');
+
+  // Getting the data with the action
+  let toPost = compareData({ value: oriDetails }, { value: details }, 'uid');
   
   // Create the post object
-  let objToPost = details.map(d => {
+  let objToPost = toPost.map(d => {
     return {
-      action: 'I',
+      action: d.action,
       client_uid: store.state.currentClient.client_uid,
       budget_uid: d.fullDetails.budget_uid,
       description: '', // What is this?
@@ -279,8 +289,17 @@ const saveClicked = async () => {
     };
   });
   
+  // Post to backend
   let result = await post(`Budget/UpdateBudgetClient?username=${localStorage.getItem('user')}`, objToPost);
-  console.log(result);
+  // Checking on the result
+  if (result) {
+    showNoti('Budget successfully saved!', 'success');
+  } else {
+    showNoti('There was an error while saving your budget.', 'error');
+  }
+
+  // Hide the loading
+  savingBudget.value = false;
 }
 //#endregion Methods
 
@@ -388,6 +407,9 @@ onMounted(async () => {
             details.col2 = subDetails.unit_rate || '';
             details.col3 = subDetails.area_size || '';
             details.col4 = subDetails.functional_area || '';
+
+            // Setting the UID for comparison
+            details.uid = subDetails.budget_uid;
           }
 
           formattedListing.push(details);
@@ -397,6 +419,31 @@ onMounted(async () => {
 
     // Set the budget listing to be the one that is formatted
     budgetListing.value = formattedListing;
+    // Checking if it has been saved before
+    if (savedExchangeRateText.value) {
+      // Set the original listing
+      originalBudgetListing.value = JSON.parse(JSON.stringify(formattedListing));
+
+      // Assigning missing values
+      originalBudgetListing.value.forEach(o => {
+        // Only assign when the fulldetails is not empty or null
+        if (o.fullDetails) {
+          // Get the details
+          let localCcy = o.fullDetails.local_ccy;
+          let homeCcy = o.fullDetails.home_ccy;
+          let col5 = o.fullDetails.local_currency_cost;
+          let col6 = o.fullDetails.home_cost;
+          let col7 = o.fullDetails.local_currency_cost_sm;
+          let col8 = o.fullDetails.home_cost_sm;
+  
+          // Assign the values
+          o.col5 = col5 ? `${localCcy} ${formatNumber(col5)}` : '';
+          o.col6 = col6 ? `${homeCcy} ${formatNumber(col6)}` : '';
+          o.col7 = col7 ? `${localCcy} ${formatNumber(col7)}` : '';
+          o.col8 = col8 ? `${homeCcy} ${formatNumber(col8)}` : '';
+        }
+      });
+    }
 
     // Close the loading
     loadingBudget.value = false;
