@@ -44,7 +44,19 @@
         <td>Area Unit</td>
         <td>{{ store.state.currentClient.sqm_sqft }}</td>
         <td>Exchange Rate</td>
-        <td>{{ exchangeRateText }}</td>
+        <td>
+          <div v-if="savedExchangeRateText" class="exchange-rate-container">
+            <div @click="showSavedRate = !showSavedRate">
+              <input type="checkbox" :checked="showSavedRate">
+              <label>{{ savedExchangeRateText }}</label>
+            </div>
+            <div @click="showSavedRate = !showSavedRate">
+              <input type="checkbox" :checked="!showSavedRate">
+              <label>{{ exchangeRateText }}</label>
+            </div>
+          </div>
+          <div v-else>{{ exchangeRateText }}</div>
+        </td>
       </tr>
       <tr>
         <td>Tax Percentage</td>
@@ -119,13 +131,16 @@ const projTotalArea = ref(''); // The total area to be shown at the header of th
 const projCompletionDate = ref(null); // The project completion date
 const budgetListing = ref([]); // The list of the budget to show
 const loadingBudget = ref(false); // When the budget is loading
-const exchangeRate = ref(0); // The exchange rate from the local to home ccy (Hardcode for now until the API for conversion is done)
+const exchangeRate = ref(0); // The exchange rate from the local to home ccy this is the live rate
+const savedExchangeRate = ref(0); // The exchange rate from the mp budget
 const currencyListing = ref([]); // The list of the currencies
 const selectedHomeCurrency = ref(''); // The selected of the home currency
 const homeCurrencyShort = ref(''); // The short of the home currency
 const localCurrencyShort = ref(''); // The short of the local currency
 const selectedLocalCurrency = ref(''); // The selected of the local currency
 const exchangeRateText = ref('0.00'); // The exchange rate to show
+const savedExchangeRateText = ref(''); // The saved exchange rate to show
+const showSavedRate = ref(false); // The toggling between saved and current rate
 //#endregion Data
 
 //#region Methods
@@ -133,12 +148,15 @@ const getLocalCurrencyValue = (toUpdate, unitRate, size, isHomeCcy) => {
   // Setting up the result as empty string
   let result = '';
 
+  // Setting the rate
+  let rate = showSavedRate.value ? savedExchangeRate.value : exchangeRate.value;
+
   if (unitRate && !isNaN(Number(unitRate)) && size && !isNaN(Number(size))) {
     let value = Number(unitRate) * Number(size);
     // If home ccy, need to convert to the home currency
     if (isHomeCcy) {
       // Returning the unitRate * size for the home ccy
-      result = `${homeCurrencyShort.value} ${formatNumber(value * exchangeRate.value)}`;
+      result = `${homeCurrencyShort.value} ${formatNumber(value * rate)}`;
     } else {
       // Returning the unitRate * size only (local ccy)
       result = `${localCurrencyShort.value} ${formatNumber(value)}`;
@@ -161,12 +179,15 @@ const getUnitRateConvertedValue = (toUpdate, unitRate, isHomeCcy) => {
   // Setting up the result as empty string
   let result = '';
 
+  // Setting the rate
+  let rate = showSavedRate.value ? savedExchangeRate.value : exchangeRate.value;
+
   // Check if the unitrate is empty
   if (unitRate && !isNaN(Number(unitRate))) {
     // Checking if home ccy
     if (isHomeCcy) {
       // Return the unit rate with the exchange rate
-      result = `${homeCurrencyShort.value} ${formatNumber(Number(unitRate) * exchangeRate.value)}`;
+      result = `${homeCurrencyShort.value} ${formatNumber(Number(unitRate) * rate)}`;
     } else {
       // Returninng the local unit rate
       result = `${localCurrencyShort.value} ${formatNumber(unitRate)}`;
@@ -307,6 +328,11 @@ onMounted(async () => {
     // Checking if there is no saved budget for the current client
     if (budgetListing.value.length == 0) {
       budgetListing.value = await get('Budget/GetAllBudgetList');
+    } else {
+      // Get the saved exchange rate value
+      savedExchangeRate.value = budgetListing.value[0].exchange_rate;
+      savedExchangeRateText.value = `${savedExchangeRate.value.toFixed(4)} (${budgetListing.value[0].local_ccy} to ${budgetListing.value[0].home_ccy}) [Saved]`;
+      showSavedRate.value = true;
     }
 
     // Putting all the value for the inputs
