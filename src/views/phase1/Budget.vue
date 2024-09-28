@@ -108,7 +108,7 @@
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex';
-import { get } from '../../js/apiCall';
+import { get, post } from '../../js/apiCall';
 import { dateFormat, formatNumber, getNumber } from '../../js/helper';
 
 const store = useStore();
@@ -221,13 +221,12 @@ const generateTableObj = (col1,col2,col3,col4,col5,col6,col7,col8) => {
     fullDetails: null // This is to be used if the type is details only
   };
 }
-const saveClicked = () => {
+const saveClicked = async () => {
   // Getting all the details object only
   let details = budgetListing.value.filter(b => b.type == 'details');
-  console.log(details);
   
+  // Create the post object
   let objToPost = details.map(d => {
-    console.log(d.col5,d.col6,d.col7,d.col8);
     return {
       action: 'I',
       client_uid: store.state.currentClient.client_uid,
@@ -239,10 +238,11 @@ const saveClicked = () => {
       budget_description: d.fullDetails.budget_description,
       subtype: '',
       unit_rate: d.col2,
-      functional_area: d.col4,
-      area_size: d.col3,
+      functional_area: isNaN(Number(d.col4)) ? 0 : Number(d.col4),
+      area_size: Number(d.col3),
       local_ccy: localCurrencyShort.value,
       home_ccy: homeCurrencyShort.value,
+      exchange_rate: exchangeRate.value,
       local_currency_cost: getNumber(d.col5),
       home_cost: getNumber(d.col6),
       local_currency_cost_sm: getNumber(d.col7),
@@ -257,8 +257,9 @@ const saveClicked = () => {
       total_tax_home_cost_sm: 0
     };
   });
-
-  console.log(objToPost);
+  
+  let result = await post(`Budget/UpdateBudgetClient?username=${localStorage.getItem('user')}`, objToPost);
+  console.log(result);
 }
 //#endregion Methods
 
@@ -354,6 +355,15 @@ onMounted(async () => {
           let details = generateTableObj(`${subDetails.budget_name}\n${subDetails.budget_description}`,'','','','','','','');
           details.type = 'details';
           details.fullDetails = subDetails;
+
+          // Checking if the subDetail is not null
+          if (subDetails) {
+            // Populating unit rate, size and functional area
+            details.col2 = subDetails.unit_rate || '';
+            details.col3 = subDetails.area_size || '';
+            details.col4 = subDetails.functional_area || '';
+          }
+
           formattedListing.push(details);
         });
       });
