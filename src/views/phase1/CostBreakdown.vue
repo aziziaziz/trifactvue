@@ -19,14 +19,14 @@
     <div class="chart-container">
       <div class="top-chart-container">
         <div class="chart-box">
-          <PieChart />
+          <PieChart title="Original Amount" />
         </div>
         <div class="chart-box">
-          <PieChart />
+          <PieChart title="Variation Amount" />
         </div>
       </div>
       <div class="chart-box">
-        <PieChart />
+        <PieChart title="Total Amount" />
       </div>
     </div>
   </div>
@@ -45,6 +45,9 @@ const router = useRouter();
 //#region Data
 const costBreakdownListing = ref([]); // The listing of the cost breakdown
 const loadingCostBreakdown = ref(false); // To used when loading the cost breakdown
+const originalAmountPieItem = ref([]); // The item for the pie item original amount
+const variationAmountPieItem = ref([]); // The item for the pie item variant amount
+const totalAmountPieItem = ref([]); // The item for the pie item total amount
 //#endregion Data
 
 //#region Lifecycle
@@ -52,6 +55,33 @@ onMounted(async () => {
   if (store.state.currentClient) {
     // Getting the details for the currentclient
     costBreakdownListing.value = await get(`Budget/GetCostBreakdown?Client_uid=${store.state.currentClient.client_uid}`);
+
+    if (costBreakdownListing.value.length > 0) {
+      originalAmountPieItem.value = costBreakdownListing.value.map(cb => {
+        return {
+          name: cb.cost_breakdown_name,
+          count: Number(cb.ori_sub_total_amnt)
+        };
+      });
+
+      console.log(originalAmountPieItem.value);
+      console.log(variationAmountPieItem.value);
+      console.log(totalAmountPieItem.value);
+
+      // variationAmountPieItem.value = costBreakdownListing.value.map(cb => {
+      //   return {
+      //     name: cb.cost_breakdown_name,
+      //     count: Number(cb.var_sub_total_amnt)
+      //   };
+      // });
+
+      // totalAmountPieItem.value = costBreakdownListing.value.map(cb => {
+      //   return {
+      //     name: cb.cost_breakdown_name,
+      //     count: Number(cb.ori_sub_total_amnt) + Number(cb.var_sub_total_amnt)
+      //   };
+      // });
+    }
   } else {
     // Push back to home page to choose client
     router.push('/Home?choose');
