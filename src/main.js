@@ -15,6 +15,7 @@ import Dropdown from './components/Dropdown.vue';
 import FormInput from './components/FormInput.vue';
 import Popup from './components/Popup.vue';
 import Loader from './components/Loader.vue';
+import PieChart from './components/PieChart.vue';
 
 app.component('Input', Input);
 app.component('Button', Button);
@@ -23,6 +24,7 @@ app.component('Dropdown', Dropdown);
 app.component('FormInput', FormInput);
 app.component('Popup', Popup);
 app.component('Loader', Loader);
+app.component('PieChart', PieChart);
 //#endregion Global component section
 
 app.use(store);
