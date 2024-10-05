@@ -1,4 +1,5 @@
 <template>
+  <div class="pie-title">{{ props.title }}</div>
   <div class="pie-chart-main">
     <div class="pie-container">
       <svg class="svg-container" :viewBox="`-${svgSize / 2} -${svgSize / 2} ${svgSize} ${svgSize}`" xmlns="http://www.w3.org/2000/svg" ref="svgEl">
@@ -24,8 +25,12 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, defineProps } from 'vue';
 import { ref } from 'vue';
+
+const props = defineProps({
+  title: { type: String, default: 'Title' }, // To set the title name of the pie chart
+});
 
 //#region Data
 const svgSize = ref(500);
@@ -161,5 +166,11 @@ onMounted(() => {
 }
 .pie-legends {
   max-width: 200px;
+}
+.pie-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  width: 100%;
+  text-align: center;
 }
 </style>
