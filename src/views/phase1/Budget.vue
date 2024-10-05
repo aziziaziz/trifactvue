@@ -68,44 +68,52 @@
       <table class="main-budget-table">
         <tr v-for="(bud,budInd) in budgetListing" :key="budInd" class="main-budget-row">
           <!-- Category, SubCategory, Name/Details -->
-          <th v-if="bud.type == 'category' || bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col1 }}</th>
-          <td v-else>
+          <th v-if="bud.type == 'category' || bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }"
+            :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col1 }}</th>
+          <td v-else :colspan="getColSpan(bud)">
             <div class="budget-name">{{ bud.col1.split('\n')[0] }}</div>
             <div v-if="bud.col1.split('\n')[1]" class="budget-desc">{{ bud.col1.split('\n')[1] }}</div>
+            <div class="sub-type-select" v-if="bud.fullDetails.subTypeListing?.length > 0">
+              <select v-model="bud.selectedSubtype">
+                <option selected disabled :value="null">Select a {{ bud.col1.split('\n')[0] }}</option>
+                <option v-for="(st,stInd) in bud.fullDetails.subTypeListing" :key="stInd">{{ st.material }}</option>
+              </select>
+              <Button @click="subtypeAddClicked(bud, budInd)">Add</Button>
+            </div>
           </td>
           <!-- Unit Rate -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col2 }}</th>
-          <td v-else-if="bud.type == 'details'">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0">
             <input v-model="bud.col2">
           </td>
           <!-- Size -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col3 }}</th>
-          <td v-else-if="bud.type == 'details'">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0">
             <input v-model="bud.col3">
           </td>
           <!-- Functional Area -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col4 }}</th>
-          <td v-else-if="bud.type == 'details'">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0">
             <input v-model="bud.col4">
           </td>
           <!-- Local currency -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col5 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0" class="number-right-text">
             {{ getLocalCurrencyValue(bud, bud.col2, bud.col3) }}
           </td>
           <!-- Home currency -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col6 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0" class="number-right-text">
             {{ getLocalCurrencyValue(bud, bud.col2, bud.col3, true) }}
           </td>
           <!-- Cost (Local currency) -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col7 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0" class="number-right-text">
             {{ getUnitRateConvertedValue(bud, bud.col2) }}
           </td>
           <!-- Cost (Home currency) -->
           <th v-if="bud.type == 'subCategory'" :class="{ 'category-header': bud.type == 'category' }" :colspan="bud.type == 'category' ? 8 : 0">{{ bud.col8 }}</th>
-          <td v-else-if="bud.type == 'details'" class="number-right-text">
+          <td v-else-if="bud.type == 'details' && bud.fullDetails.subTypeListing?.length == 0" class="number-right-text">
             {{ getUnitRateConvertedValue(bud, bud.col2, true) }}
           </td>
         </tr>
@@ -242,6 +250,7 @@ const generateTableObj = (col1,col2,col3,col4,col5,col6,col7,col8) => {
     col8: col8 || '', // Cost (Home)
     type: '', // Can be category, subCategory or details
     uid: null, // The budget uid
+    selectedSubtype: null, // The sub type that is selected
     fullDetails: null // This is to be used if the type is details only
   };
 }
@@ -301,6 +310,33 @@ const saveClicked = async () => {
   // Hide the loading
   savingBudget.value = false;
 }
+const getColSpan = (budget) => { // To get the number of col span
+  if (budget.type == 'category') {
+    return 8;
+  } else if (budget.type == 'details') {
+    if (budget.fullDetails.subTypeListing?.length > 0) {
+      return 8;
+    } else {
+      return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+const subtypeAddClicked = (budget, index) => {
+  // Generate the obj
+  let details = generateTableObj(`${budget.col1.split('\n').join('')} - ${budget.selectedSubtype}`,'','','','','','','');
+  details.type = 'details';
+  details.fullDetails = {
+    subTypeListing: []
+  };
+
+  // Insert into the budgetlisting on the next index
+  budgetListing.value.splice(index + 1, 0, details);
+
+  // Clearing the selected sub type
+  budget.selectedSubtype = null;
+}
 //#endregion Methods
 
 //#region Watcher
@@ -355,10 +391,12 @@ onMounted(async () => {
     }
 
     // Putting all the value for the inputs
-    budgetListing.value.forEach(b => {
+    budgetListing.value.forEach(async b => {
       b.unitRateValue = '';
       b.sizeValue = '';
       b.functionalAreaValue = '';
+
+      b.subTypeListing = await get(`Budget/GetBudgetSubtype?budget_uid=${b.budget_uid}`);
     })
 
     // Grouping by category
@@ -517,5 +555,18 @@ onMounted(async () => {
   bottom: 10px;
   width: fit-content;
   align-self: flex-end;
+}
+.sub-type-select {
+  display: flex;
+  column-gap: 5px;
+  margin-top: 5px;
+}
+.sub-type-select > select {
+  width: 100%;
+  max-width: 500px;
+}
+.sub-type-select > Button {
+  padding: 5px 10px;
+  width: fit-content;
 }
 </style>
