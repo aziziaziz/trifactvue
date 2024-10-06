@@ -1,7 +1,7 @@
 <template>
   <div class="pie-title">{{ props.title }}</div>
   <div v-if="chartMessage" class="chart-message">{{ chartMessage }}</div>
-  <div v-else class="pie-chart-main">
+  <div v-show="!chartMessage" class="pie-chart-main">
     <div class="pie-container">
       <svg class="svg-container" :viewBox="`-${svgSize / 2} -${svgSize / 2} ${svgSize} ${svgSize}`" xmlns="http://www.w3.org/2000/svg" ref="svgEl">
         <g transform="rotate(-90)">
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { onMounted, defineProps } from 'vue';
+import { onMounted, defineProps, watch } from 'vue';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -91,29 +91,28 @@ const chartMessage = ref(''); // The message to show for the chart (used when th
 const svgSizeChanged = (e) => {
   svgHeight.value = e[0].contentRect.height;
 }
-//#endregion Methods
-
-//#region Lifecycle
-onMounted(() => {
-  // The pie size is 90% of the svg container
-  pieSize.value = svgSize.value * 0.9;
-
+const generateChart = () => {
   if (props.item.length > 0) {
     pieItem.value = props.item;
   }
 
   // Get the total of the item count
-  let total = pieItem.value.map(i => i.count).reduce((a,b) => a + b, 0);
+  let total = pieItem.value.map(i => Number(i.count)).reduce((a,b) => a + b, 0);
   // Checking if the total is 0
   if (total == 0) {
     chartMessage.value = 'Could not generated pie chart as the total is 0';
   } else if (total < 0) {
     chartMessage.value = 'Could not generated pie chart as the total is below 0';
+  } else {
+    chartMessage.value = '';
   }
 
   // Reformat the items to put the angle and for the dasharray
   let currentAngle = 0;
   pieItem.value.forEach((i,ind) => {
+    // Always making sure that the count is number
+    i.count = Number(i.count);
+
     // The start is always at 0
     let start = 0;
     // Getting the angle by getting the count / by total * 360 (total circle angle)
@@ -135,10 +134,30 @@ onMounted(() => {
     // Add the angle to make sure the next one is added properly
     currentAngle += angle;
   });
+}
+//#endregion Methods
+
+//#region Lifecycle
+onMounted(() => {
+  // The pie size is 90% of the svg container
+  pieSize.value = svgSize.value * 0.9;
+
+  // Generating the chart
+  generateChart();
   
   new ResizeObserver(svgSizeChanged).observe(svgEl.value);
 });
 //#endregion Lifecycle
+
+//#region Watcher
+watch(() => props.item, (val) => {
+  // Checking the value of the item
+  if (val.length > 0) {
+    // Generating the chart
+    generateChart();
+  }
+});
+//#endregion Watcher
 </script>
 
 <style scoped>
