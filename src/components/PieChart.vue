@@ -1,6 +1,7 @@
 <template>
   <div class="pie-title">{{ props.title }}</div>
-  <div class="pie-chart-main">
+  <div v-if="chartMessage" class="chart-message">{{ chartMessage }}</div>
+  <div v-else class="pie-chart-main">
     <div class="pie-container">
       <svg class="svg-container" :viewBox="`-${svgSize / 2} -${svgSize / 2} ${svgSize} ${svgSize}`" xmlns="http://www.w3.org/2000/svg" ref="svgEl">
         <g transform="rotate(-90)">
@@ -83,6 +84,7 @@ const pieItem = ref([ // The default of the pie item
   { "name": "Dragon Fruit", "count": 31 },
   { "name": "This is a very long fruit name", "count": 31 },
 ]);
+const chartMessage = ref(''); // The message to show for the chart (used when the chart could not be generated)
 //#endregion Data
 
 //#region Methods
@@ -102,6 +104,12 @@ onMounted(() => {
 
   // Get the total of the item count
   let total = pieItem.value.map(i => i.count).reduce((a,b) => a + b, 0);
+  // Checking if the total is 0
+  if (total == 0) {
+    chartMessage.value = 'Could not generated pie chart as the total is 0';
+  } else if (total < 0) {
+    chartMessage.value = 'Could not generated pie chart as the total is below 0';
+  }
 
   // Reformat the items to put the angle and for the dasharray
   let currentAngle = 0;
@@ -178,6 +186,10 @@ onMounted(() => {
   font-weight: bold;
   font-size: 1.1em;
   width: 100%;
+  text-align: center;
+}
+.chart-message {
+  font-style: italic;
   text-align: center;
 }
 </style>
