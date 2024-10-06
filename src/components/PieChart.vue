@@ -13,6 +13,7 @@
         fontSize: `${svgHeight * 0.0375}px`,
         color: `${it.textColor}`,
         transform: `rotate(${it.midAngle}deg)`,
+        opacity: it.angle > 20 ? 1 : (hoverIndex == itInd ? 1 : 0),
         transformOrigin: `${svgHeight / 2}px ${svgHeight * 0.4}px` }">{{ it.percentage }}%</div>
     </div>
     <div class="pie-legends">
@@ -120,7 +121,8 @@ onMounted(() => {
     i['color'] = pieColors.value[ind].color;
     i['textColor'] = pieColors.value[ind].text;
     i['midAngle'] = midAngle + currentAngle;
-    i['percentage'] = Math.floor(perc);
+    i['percentage'] = Math.round(perc);
+    i['angle'] = angle;
 
     // Add the angle to make sure the next one is added properly
     currentAngle += angle;
