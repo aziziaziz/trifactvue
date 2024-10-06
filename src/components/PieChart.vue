@@ -4,11 +4,11 @@
     <div class="pie-container">
       <svg class="svg-container" :viewBox="`-${svgSize / 2} -${svgSize / 2} ${svgSize} ${svgSize}`" xmlns="http://www.w3.org/2000/svg" ref="svgEl">
         <g transform="rotate(-90)">
-          <circle class="pie-arc" v-for="(it,itInd) in props.item" :key="itInd" :r="pieSize / 4" :stroke="it.color" :stroke-width="pieSize / 2" pathLength="360" :stroke-dasharray="it.dashArray" fill="none"
+          <circle class="pie-arc" v-for="(it,itInd) in pieItem" :key="itInd" :r="pieSize / 4" :stroke="it.color" :stroke-width="pieSize / 2" pathLength="360" :stroke-dasharray="it.dashArray" fill="none"
             @mouseover="hoverIndex = itInd" @mouseout="hoverIndex = -1" />
         </g>
       </svg>
-       <div v-for="(it,itInd) in props.item" :key="itInd" class="pie-text" :style="{
+       <div v-for="(it,itInd) in pieItem" :key="itInd" class="pie-text" :style="{
         top: `${svgHeight * 0.1}px`,
         fontSize: `${svgHeight * 0.0375}px`,
         color: `${it.textColor}`,
@@ -16,7 +16,7 @@
         transformOrigin: `${svgHeight / 2}px ${svgHeight * 0.4}px` }">{{ it.percentage }}%</div>
     </div>
     <div class="pie-legends">
-      <div v-for="(it,itInd) in props.item" :key="itInd" class="legend-items">
+      <div v-for="(it,itInd) in pieItem" :key="itInd" class="legend-items">
         <div class="legend-color" :style="{ backgroundColor: pieColors[itInd].color }"></div>
         <div class="legend-text" :style="{ fontWeight: hoverIndex == itInd ? 'bold' : 'normal' }">{{ it.name }}</div>
       </div>
@@ -30,22 +30,7 @@ import { ref } from 'vue';
 
 const props = defineProps({
   title: { type: String, default: 'Title' }, // To set the title name of the pie chart
-  item: { type: Array, default: () => { return [
-    // { "name": "Apple", "count": 25 },
-    // { "name": "Banana", "count": 25 },
-    { "name": "Apple", "count": 23 },
-    { "name": "Banana", "count": 24 },
-    { "name": "Cherry", "count": 15 },
-    { "name": "Mango", "count": 32 },
-    { "name": "Orange", "count": 28 },
-    { "name": "Grape", "count": 12 },
-    { "name": "Pineapple", "count": 39 },
-    { "name": "Strawberry", "count": 8 },
-    { "name": "Kiwi", "count": 26 },
-    { "name": "Watermelon", "count": 31 },
-    { "name": "Dragon Fruit", "count": 31 },
-    { "name": "This is a very long fruit name", "count": 31 },
-  ] } }
+  item: { type: Array, default: () => { return [] } }, // The item for the chart
 });
 
 //#region Data
@@ -81,6 +66,22 @@ const pieColors = ref([
 const hoverIndex = ref(-1);
 const svgEl = ref(null);
 const svgHeight = ref(0);
+const pieItem = ref([ // The default of the pie item
+  // { "name": "Apple", "count": 25 },
+  // { "name": "Banana", "count": 25 },
+  { "name": "Apple", "count": 23 },
+  { "name": "Banana", "count": 24 },
+  { "name": "Cherry", "count": 15 },
+  { "name": "Mango", "count": 32 },
+  { "name": "Orange", "count": 28 },
+  { "name": "Grape", "count": 12 },
+  { "name": "Pineapple", "count": 39 },
+  { "name": "Strawberry", "count": 8 },
+  { "name": "Kiwi", "count": 26 },
+  { "name": "Watermelon", "count": 31 },
+  { "name": "Dragon Fruit", "count": 31 },
+  { "name": "This is a very long fruit name", "count": 31 },
+]);
 //#endregion Data
 
 //#region Methods
@@ -94,12 +95,16 @@ onMounted(() => {
   // The pie size is 90% of the svg container
   pieSize.value = svgSize.value * 0.9;
 
+  if (props.item.length > 0) {
+    pieItem.value = props.item;
+  }
+
   // Get the total of the item count
-  let total = props.item.map(i => i.count).reduce((a,b) => a + b, 0);
+  let total = pieItem.value.map(i => i.count).reduce((a,b) => a + b, 0);
 
   // Reformat the items to put the angle and for the dasharray
   let currentAngle = 0;
-  props.item.forEach((i,ind) => {
+  pieItem.value.forEach((i,ind) => {
     // The start is always at 0
     let start = 0;
     // Getting the angle by getting the count / by total * 360 (total circle angle)
