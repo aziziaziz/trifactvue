@@ -19,7 +19,7 @@
     <div class="chart-container">
       <div class="top-chart-container">
         <div class="chart-box">
-          <PieChart title="Original Amount" />
+          <PieChart title="Original Amount" :item="originalAmountPieItem" />
         </div>
         <div class="chart-box">
           <PieChart title="Variation Amount" />
@@ -53,6 +53,9 @@ const totalAmountPieItem = ref([]); // The item for the pie item total amount
 //#region Lifecycle
 onMounted(async () => {
   if (store.state.currentClient) {
+    // Show the loading
+    loadingCostBreakdown.value = true;
+
     // Getting the details for the currentclient
     costBreakdownListing.value = await get(`Budget/GetCostBreakdown?Client_uid=${store.state.currentClient.client_uid}`);
 
@@ -81,6 +84,9 @@ onMounted(async () => {
       //     count: Number(cb.ori_sub_total_amnt) + Number(cb.var_sub_total_amnt)
       //   };
       // });
+
+      // Hide the loading
+      loadingCostBreakdown.value = false;
     }
   } else {
     // Push back to home page to choose client
