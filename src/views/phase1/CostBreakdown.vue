@@ -11,7 +11,8 @@
       <tr v-for="(cb,cbInd) in costBreakdownListing" :key="cbInd">
         <td>{{ cb.cost_breakdown_name }}</td>
         <td>{{ formatNumber(cb.ori_sub_total_amnt) }}</td>
-        <td>{{ formatNumber(cb.var_sub_total_amnt) }}</td>
+        <!-- <td>{{ formatNumber(cb.var_sub_total_amnt) }}</td> -->
+        <td><input class="variation-text-box" type="text" v-model="cb.var_sub_total_amnt" @input="variationChanged"></td>
         <td>{{ formatNumber(Number(cb.ori_sub_total_amnt) + Number(cb.var_sub_total_amnt)) }}</td>
       </tr>
     </table>
@@ -22,11 +23,11 @@
           <PieChart title="Original Amount" :item="originalAmountPieItem" />
         </div>
         <div class="chart-box">
-          <PieChart title="Variation Amount" />
+          <PieChart title="Variation Amount" :item="variationAmountPieItem" />
         </div>
       </div>
       <div class="chart-box">
-        <PieChart title="Total Amount" />
+        <PieChart title="Total Amount" :item="totalAmountPieItem" />
       </div>
     </div>
   </div>
@@ -50,6 +51,37 @@ const variationAmountPieItem = ref([]); // The item for the pie item variant amo
 const totalAmountPieItem = ref([]); // The item for the pie item total amount
 //#endregion Data
 
+//#region Method
+const generatePieItem = () => {
+  originalAmountPieItem.value = costBreakdownListing.value.map(cb => {
+    return {
+      name: cb.cost_breakdown_name,
+      count: Number(cb.ori_sub_total_amnt)
+    };
+  });
+
+  variationAmountPieItem.value = costBreakdownListing.value.map(cb => {
+    return {
+      name: cb.cost_breakdown_name,
+      count: Number(cb.var_sub_total_amnt)
+    };
+  });
+
+  totalAmountPieItem.value = costBreakdownListing.value.map(cb => {
+    return {
+      name: cb.cost_breakdown_name,
+      count: Number(cb.ori_sub_total_amnt) + Number(cb.var_sub_total_amnt)
+    };
+  });
+}
+const variationChanged = () => {
+  // // Get the cost breakdown based on the index
+  // let cost = costBreakdownListing.value[costIndex];
+  // Regenerate the pie item
+  generatePieItem();
+}
+//#endregion Method
+
 //#region Lifecycle
 onMounted(async () => {
   if (store.state.currentClient) {
@@ -59,35 +91,13 @@ onMounted(async () => {
     // Getting the details for the currentclient
     costBreakdownListing.value = await get(`Budget/GetCostBreakdown?Client_uid=${store.state.currentClient.client_uid}`);
 
+    // Generate the pie item only when the listing is not 0
     if (costBreakdownListing.value.length > 0) {
-      originalAmountPieItem.value = costBreakdownListing.value.map(cb => {
-        return {
-          name: cb.cost_breakdown_name,
-          count: Number(cb.ori_sub_total_amnt)
-        };
-      });
-
-      console.log(originalAmountPieItem.value);
-      console.log(variationAmountPieItem.value);
-      console.log(totalAmountPieItem.value);
-
-      // variationAmountPieItem.value = costBreakdownListing.value.map(cb => {
-      //   return {
-      //     name: cb.cost_breakdown_name,
-      //     count: Number(cb.var_sub_total_amnt)
-      //   };
-      // });
-
-      // totalAmountPieItem.value = costBreakdownListing.value.map(cb => {
-      //   return {
-      //     name: cb.cost_breakdown_name,
-      //     count: Number(cb.ori_sub_total_amnt) + Number(cb.var_sub_total_amnt)
-      //   };
-      // });
-
-      // Hide the loading
-      loadingCostBreakdown.value = false;
+      generatePieItem();
     }
+
+    // Hide the loading
+    loadingCostBreakdown.value = false;
   } else {
     // Push back to home page to choose client
     router.push('/Home?choose');
@@ -122,5 +132,9 @@ td:not(:first-child) {
 }
 .chart-box {
   width: 50%;
+}
+.variation-text-box {
+  text-align: center;
+  width: 100%;
 }
 </style>
