@@ -20,7 +20,8 @@
     <div class="pie-legends">
       <div v-for="(it,itInd) in pieItem" :key="itInd" class="legend-items">
         <div class="legend-color" :style="{ backgroundColor: pieColors[itInd].color }"></div>
-        <div class="legend-text" :style="{ fontWeight: hoverIndex == itInd ? 'bold' : 'normal' }">{{ it.name }}</div>
+        <div :style="{ opacity: hoverIndex == itInd ? 0 : 1 }" class="legend-text">{{ it.name }}</div>
+        <div :style="{ fontWeight: 'bold', opacity: hoverIndex == itInd ? 1 : 0 }">{{ it.name }}</div>
       </div>
     </div>
   </div>
@@ -189,6 +190,7 @@ watch(() => props.item, (val) => {
   column-gap: 5px;
   margin-bottom: 5px;
   align-items: center;
+  position: relative;
 }
 .legend-color {
   height: 20px;
@@ -210,5 +212,9 @@ watch(() => props.item, (val) => {
 .chart-message {
   font-style: italic;
   text-align: center;
+}
+.legend-text {
+  position: absolute;
+  left: 25px;
 }
 </style>
