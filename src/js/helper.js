@@ -265,3 +265,23 @@ export const getNumber = (formatted) => {
     return 0;
   }
 }
+// To convert a file object to img src
+export const fileToImgSrc = (file) => {
+  // Setting an empty resolve to make this method awaitable
+  let res = null;
+  let prom = new Promise((r) => res = r);
+
+  // Creating a file reader
+  let reader = new FileReader();
+  // Reading the file
+  reader.readAsDataURL(file);
+
+  // Handling when the reader loaded
+  reader.onload = (e) => {
+    // Return the img src
+    res(e.target.result);
+  };
+
+  // Return the promise
+  return prom;
+}

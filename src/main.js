@@ -16,6 +16,7 @@ import FormInput from './components/FormInput.vue';
 import Popup from './components/Popup.vue';
 import Loader from './components/Loader.vue';
 import PieChart from './components/PieChart.vue';
+import FloorPlan from './components/FloorPlan.vue';
 
 app.component('Input', Input);
 app.component('Button', Button);
@@ -25,6 +26,7 @@ app.component('FormInput', FormInput);
 app.component('Popup', Popup);
 app.component('Loader', Loader);
 app.component('PieChart', PieChart);
+app.component('FloorPlan', FloorPlan);
 //#endregion Global component section
 
 app.use(store);

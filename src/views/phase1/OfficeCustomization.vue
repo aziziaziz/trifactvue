@@ -1,5 +1,8 @@
 <template>
   <div class="office-custom-main">
+    <div class="floor-plan-test">
+      <FloorPlan />
+    </div>
     <Input placeholder="Search Space" />
     <Button @click="testClicked">Test</Button>
     <div>{{ status }}</div>
@@ -62,5 +65,9 @@ const getForAnon = async () => {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+.floor-plan-test {
+  height: 500px;
+  width: 100%;
 }
 </style>
