@@ -30,8 +30,16 @@
     </div>
 
     <!-- This is the container on the right side -->
-    <div class="plan-image-container">
-      Right side
+    <div v-if="pointerSelectedIndex >= 0" class="plan-image-container">
+      <!-- This section is when a pointer is selected -->
+      <FormInput placeholder="Point Description" v-model:value="pointerDetails[pointerSelectedIndex].description" />
+      <div v-if="!pointerDetails[pointerSelectedIndex].image">There is no image linked to this point. Add image link to this point.</div>
+      <input v-if="!pointerDetails[pointerSelectedIndex].image" type="file" @change="pointerImageChanged">
+      <img class="pointer-image" v-if="pointerDetails[pointerSelectedIndex].image" :src="pointerDetails[pointerSelectedIndex].image">
+    </div>
+    <div v-else-if="floorPlanImageBlob" class="plan-image-container">
+      <!-- This section is when no pointer is selected -->
+      No pointer is selected
     </div>
   </div>
 </template>
@@ -47,6 +55,7 @@ const planContainerSize = ref(0); // This is the size of the plan container (hei
 const planContainerEl = ref(null); // The element reference of the plan container
 const floorPlanImageEl = ref(null); // The element reference of the floor plan image
 const allPointers = ref([]); // The list of the pointers to show
+const pointerDetails = ref([]); // The details of the pointer including the image
 const floorPlanImage = ref(null); // The image of the floor plan
 const floorPlanImageBlob = ref(null); // The blob image to assign to the img src
 const floorPlanImageInput = ref(null); // The input of the floor plan image
@@ -54,14 +63,14 @@ const floorPlanImageLoading = ref(false); // When loading the image chosed
 const pointerSelectedIndex = ref(-1); // The index of the selected pointer
 const rotationChanging = ref(false); // When the user changing the rotation
 
-const imageContainerHeight = ref(0);
-const imageContainerWidth = ref(0);
-const actualImageHeight = ref(0);
-const actualImageWidth = ref(0);
-const newImageHeight = ref(0);
-const newImageWidth = ref(0);
-const topImagePadding = ref(0);
-const leftImagePadding = ref(0);
+const imageContainerHeight = ref(0); // The img tag height
+const imageContainerWidth = ref(0); // The img tag width
+const actualImageHeight = ref(0); // The image actual height
+const actualImageWidth = ref(0); // The image actual width
+const newImageHeight = ref(0); // The image height that is visible in the page based on the size of the img container
+const newImageWidth = ref(0); // The image width that is visible in the page based on the size of the img container
+const topImagePadding = ref(0); // The top/bottom spacing between the image and the container
+const leftImagePadding = ref(0); // The left/right spacing between the image and the container
 //#endregion Data
 
 //#region Methods
@@ -88,6 +97,11 @@ const addPointer = (e) => {
       left: x / newImageWidth.value * 100, // The left position in percentage
       top: y / newImageHeight.value * 100, // The top position in percentage
       rotate: 0
+    });
+    // Add the pointer details
+    pointerDetails.value.push({
+      description: '',
+      image: null
     });
 
     // Set the selected index to the latest pointer
@@ -162,6 +176,14 @@ const closeRotationClicked = (e) => {
   e.stopPropagation();
   pointerSelectedIndex.value = -1;
 }
+const pointerImageChanged = async (e) => {
+  // Get the image and convert to img src
+  let img = e.target.files[0];
+  let imgSrc = await fileToImgSrc(img);
+
+  // Assign to the details based on the selected index
+  pointerDetails.value[pointerSelectedIndex.value].image = imgSrc;
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -191,6 +213,9 @@ onMounted(() => {
   width: 60%;
   height: 100%;
   margin-left: 10px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 5px;
   /* background-color: blue; */
 }
 .pointer-container {
@@ -253,5 +278,10 @@ onMounted(() => {
   padding: 5px 10px;
   font-size: 0.8em;
   width: fit-content;
+}
+.pointer-image {
+  width: 100%;
+  height: calc(100% - 52px);
+  object-fit: contain;
 }
 </style>
