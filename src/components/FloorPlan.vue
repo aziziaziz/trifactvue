@@ -33,9 +33,14 @@
     <div v-if="pointerSelectedIndex >= 0" class="plan-image-container">
       <!-- This section is when a pointer is selected -->
       <FormInput placeholder="Point Description" v-model:value="pointerDetails[pointerSelectedIndex].description" />
-      <div v-if="!pointerDetails[pointerSelectedIndex].image">There is no image linked to this point. Add image link to this point.</div>
-      <input v-if="!pointerDetails[pointerSelectedIndex].image" type="file" @change="pointerImageChanged">
-      <img class="pointer-image" v-if="pointerDetails[pointerSelectedIndex].image" :src="pointerDetails[pointerSelectedIndex].image">
+      <div v-if="!pointerDetails[pointerSelectedIndex].image">
+        <div>There is no image linked to this point. Add image link to this point.</div>
+        <input type="file" @change="pointerImageChanged">
+      </div>
+      <div v-else class="pointer-image-container">
+        <img class="pointer-image" :src="pointerDetails[pointerSelectedIndex].image">
+        <Button theme="danger" class="delete-pointer-image" @click="deletePointerImageClicked">Delete Image</Button>
+      </div>
     </div>
     <div v-else-if="floorPlanImageBlob" class="plan-image-container">
       <!-- This section is when no pointer is selected -->
@@ -198,6 +203,16 @@ const deletePointerClicked = async (index) => {
     pointerSelectedIndex.value = -1;
   }
 }
+const deletePointerImageClicked = async () => {
+  // Show confirmation on delete
+  let confirmDelete = await question('Delete Image', 'Are you sure you want to delete this pointer image?', 'Delete', 'Cancel', true);
+
+  // Checking if user confirm to delete
+  if (confirmDelete == 'Delete') {
+    // Delete the pointer image
+    pointerDetails.value[pointerSelectedIndex.value].image = null;
+  }
+}
 //#endregion Methods
 
 //#region Lifecycle
@@ -293,9 +308,20 @@ onMounted(() => {
   font-size: 0.8em;
   width: fit-content;
 }
+.pointer-image-container {
+  height: calc(100% - 52px);
+  width: 100%;
+  position: relative;
+}
 .pointer-image {
   width: 100%;
-  height: calc(100% - 52px);
+  height: 100%;
   object-fit: contain;
+}
+.delete-pointer-image {
+  width: fit-content;
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
 }
 </style>
