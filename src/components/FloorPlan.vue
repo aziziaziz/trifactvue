@@ -24,7 +24,7 @@
           <div>Rotation</div>
           <input type="range" min="-180" max="180" v-model="pt.rotate" @mousedown="rotationChanging = true" @mouseup="rotationChanging = false">
           <img class="close-rotation" src="../assets/input/clear.png" @click="closeRotationClicked">
-          <Button theme="danger">Delete Pointer</Button>
+          <Button theme="danger" @click="deletePointerClicked(ptInd)">Delete Pointer</Button>
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { fileToImgSrc } from '../js/helper';
+import { fileToImgSrc, question } from '../js/helper';
 
 //#region Data
 const pointerScale = ref(0.05); // The scale of the pointer based on the plan container size
@@ -183,6 +183,20 @@ const pointerImageChanged = async (e) => {
 
   // Assign to the details based on the selected index
   pointerDetails.value[pointerSelectedIndex.value].image = imgSrc;
+}
+const deletePointerClicked = async (index) => {
+  // Show confirmation on delete
+  let confirmDelete = await question('Delete Pointer', 'Are you sure you want to delete this pointer?', 'Delete', 'Cancel', true);
+
+  // Checking if user confirm to delete
+  if (confirmDelete == 'Delete') {
+    // Delete the pointer and details
+    allPointers.value.splice(index, 1);
+    pointerDetails.value.splice(index, 1);
+
+    // Remove the selected index
+    pointerSelectedIndex.value = -1;
+  }
 }
 //#endregion Methods
 
