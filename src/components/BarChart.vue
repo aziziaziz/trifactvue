@@ -41,7 +41,7 @@ import { ref, onMounted } from 'vue';
 const barData = ref([
   { name: "Liam Smith", value: 128.7 },
   { name: "Jane", value: 165.6 },
-  { name: "Olivia Brown", value: 30500.4 },
+  { name: "Olivia Brown", value: 305.4 },
   { name: "Noah Davis", value: 0 },
   { name: "Emma Wilson long", value: -450.0 },
   { name: "Ava Garcia", value: 250.3 },
@@ -277,5 +277,6 @@ onMounted(() => {
   position: absolute;
   padding: 0 5px;
   transition: 0.3s;
+  word-break: break-all;
 }
 </style>
