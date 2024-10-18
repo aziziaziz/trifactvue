@@ -24,6 +24,10 @@
             transform: b.value >= 0 ? `translateY(calc(-100% - 3px))` : '',
             opacity: isBarHover(bInd) ? '1' : '0.4',
             fontWeight: isBarHover(bInd) ? 'bold' : 'normal' }">{{ b.value }}</div>
+          <div class="bar-value-text bar-name small-bar-name" :style="{
+            top: b.value < 0 ? '0' : 'calc(100% + 5px)',
+            transform: b.value < 0 ? 'translateY(calc(-100% - 5px))' : '',
+            whiteSpace: barHoverIndex == bInd ? (isBarHover(bInd) ? '' : 'nowrap') : 'nowrap' }">{{ b.name }}</div>
         </div>
       </div>
     </div>
@@ -37,16 +41,16 @@ import { ref, onMounted } from 'vue';
 const barData = ref([
   { name: "Liam Smith", value: 128.7 },
   { name: "Jane", value: 165.6 },
-  { name: "Olivia Brown", value: 305.4 },
-  { name: "Noah Davis", value: 75.2 },
-  { name: "Emma Wilson", value: -450.0 },
+  { name: "Olivia Brown", value: 30500.4 },
+  { name: "Noah Davis", value: 0 },
+  { name: "Emma Wilson long", value: -450.0 },
   { name: "Ava Garcia", value: 250.3 },
   { name: "Isabella Martinez", value: 520 },
   { name: "Lucas Rodriguez", value: -389.1 },
   { name: "Mia Lee", value: 487.5 },
   { name: "Elijah Perez", value: 320.2 },
   { name: "Sophia Taylor", value: 165.6 },
-  { name: "Bob", value: 89 }
+  { name: "Bob name is a little bit longer than anyone else ab", value: 89 }
 ]);
 const barChartEl = ref(null);
 const barHoverIndex = ref(-1);
@@ -265,6 +269,13 @@ onMounted(() => {
   text-align: center;
   position: relative;
   font-size: 0.8em;
+  transition: 0.3s;
+}
+.bar-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: absolute;
+  padding: 0 5px;
   transition: 0.3s;
 }
 </style>
